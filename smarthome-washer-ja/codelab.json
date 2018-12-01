@@ -1,0 +1,26 @@
+{
+  "environment": "web",
+  "source": "1isR7xKfSZkUD42kTxrGX05EDglo5zjohKPXVzdNpeJU",
+  "format": "html",
+  "prefix": "./",
+  "mainga": "UA-49880327-14",
+  "updated": "2018-11-30T22:09:15Z",
+  "id": "smarthome-washer-ja",
+  "duration": 65,
+  "title": "スマートホーム洗濯機",
+  "author": "yoichiro (original author is fleker@)",
+  "summary": "このコードラブでは、独自にクラウドとのインテグレーションを作成し、Googleアシスタントをスマートな洗濯機に接続します。",
+  "theme": "assistant",
+  "status": [
+    "live"
+  ],
+  "category": [
+    "Assistant"
+  ],
+  "tags": [
+    "lang-ja",
+    "tag-assistant",
+    "web"
+  ],
+  "url": "smarthome-washer-ja"
+}

@@ -1,0 +1,26 @@
+{
+  "environment": "web",
+  "source": "1KizKKyMLfg0Rsm0wzykQvDza2zj9XSaiTt_ecg86kaY",
+  "format": "html",
+  "prefix": "./",
+  "mainga": "UA-49880327-14",
+  "updated": "2018-11-30T22:09:03Z",
+  "id": "actions-1-ja",
+  "duration": 50,
+  "title": "Build Actions for the Google Assistant (Level 1)",
+  "author": "yoichiro",
+  "summary": "このコードラボでは、Actions on Googleでの開発における初心者レベルの概念をカバーします。",
+  "theme": "assistant",
+  "status": [
+    "live"
+  ],
+  "category": [
+    "Assistant"
+  ],
+  "tags": [
+    "lang-ja",
+    "tag-assistant",
+    "web"
+  ],
+  "url": "actions-1-ja"
+}

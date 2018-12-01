@@ -1,0 +1,831 @@
+
+<!doctype html>
+
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <meta name="theme-color" content="#4F7DC9">
+  <meta charset="UTF-8">
+  <title>スマートホーム洗濯機</title>
+  <script src="./bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <link rel="import" href="./elements/codelab.html">
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro:400|Roboto:400,300,400italic,500,700|Roboto+Mono">
+  <style is="custom-style">
+    body {
+      font-family: "Roboto",sans-serif;
+      background: var(--google-codelab-background, #F8F9FA);
+    }
+  </style>
+  
+</head>
+<body unresolved class="fullbleed">
+
+  <google-codelab title="スマートホーム洗濯機"
+                  environment="web"
+                  feedback-link="">
+    
+      <google-codelab-step label="Introduction" duration="5">
+        <p><img style="max-width: 508.00px" src="img/5f556ea1121cce94.png"></p>
+<p>Internet of Things(IoT)の開発者は、<a href="https://developers.google.com/actions/smarthome" target="_blank">Smart Home</a> 統合を使用することで、直接音声コマンドを通じて Google アシスタントから遠隔制御できるデバイスを構築できます。これは、Google アシスタントとあなたのサーバーとの間のクラウドとクラウドの統合によって実現されます。</p>
+<p>Smart Home アプリは、家庭とそのデバイス群に関するコンテキストデータを格納し提供するデータベースである Home Graph に依存しています。たとえば、 Home Graph には、さまざまなメーカーの複数のタイプのデバイス（サーモスタット、ランプ、ファン、および掃除機）を含むリビングルームのコンセプトを保存できます。この情報は、適切なコンテキストに基づいて、ユーザーのリクエストを実行するためにGoogleアシスタントに渡されます。</p>
+<p><img style="max-width: 362.72px" src="img/bbfcfb7f57417b89.png"></p>
+<h2>何を作りますか</h2>
+<p>このコードラボでは、独自のクラウド統合を作成し、Google アシスタントをスマートな洗濯機に接続します。</p>
+<h2 class="checklist"><strong>What you&#39;ll learn</strong></h2>
+<ul class="checklist">
+<li>Smart Home サーバのデプロイ方法</li>
+<li>Google アシスタントへの洗濯機の接続方法</li>
+<li>トグルおよびモードの追加方法</li>
+<li>Request Sync および Report State APIs の使用方法</li>
+</ul>
+<h2><strong>何が必要ですか</strong></h2>
+<ul>
+<li>ウェブブラウザ</li>
+<li>Node.js</li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Getting Started" duration="5">
+        <h2><strong>Actions on Google Consoleの利用</strong></h2>
+<ol type="1" start="1">
+<li><a href="http://console.actions.google.com/" target="_blank">Actions on Google Developer Console</a> に移動します。</li>
+<li>Add Project をクリックして、プロジェクト名を入力します。そして、 <strong>CREATE PROJECT</strong> をクリックします。</li>
+</ol>
+<p><img style="max-width: 403.50px" src="img/b02d7805ad8a4adc.png"></p>
+<h2><strong>Smart Home Appを選択</strong></h2>
+<p>Actions console の <strong>Overview screen</strong> 上で、<strong>Home control</strong> をクリックし、そして <strong>Smart home</strong> をクリックします。</p>
+<p><img style="max-width: 310.00px" src="img/41d97241be7c490d.png"></p>
+<aside class="warning"><p>このプロジェクトを完全に実行するには、携帯電話と Actions console で同じGoogleアカウントが必要です。</p>
+</aside>
+<h2><strong>Firebase Command Line Interface のインストール</strong></h2>
+<p>Firebase Command Line Interface (CLI) を使用すると、ウェブアプリをローカルでサーブし、そのウェブアプリを Firebase ホスティングにデプロイできます。</p>
+<aside class="special"><p><strong>Tip:</strong> CLIをインストールするために、あなたは <a href="https://nodejs.org/en/" target="_blank">Node.js</a> に通常含まれる <a href="https://www.npmjs.com/" target="_blank">npm</a> をインストールする必要があります。</p>
+</aside>
+<p>CLIをインストールするために、以下の npm コマンドを実行してください:</p>
+<pre><code>npm -g install firebase-tools</code></pre>
+<aside class="warning"><p>動きませんか？ <a href="https://docs.npmjs.com/getting-started/fixing-npm-permissions" target="_blank">npm のパーミッションを変更</a>する必要があるかも知れません。</p>
+</aside>
+<p>CLI が正しくインストールされたかどうかを検証するために、コンソールを開いて、以下を実行してください:</p>
+<pre><code>firebase --version</code></pre>
+<p>Firebase CLI のバージョンが 3.3.0 以上かどうかを確認してください。</p>
+<p>次のコマンドを実行して、Firebase CLI を認可します:</p>
+<pre><code>firebase login</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Run the starter app" duration="10">
+        <h2><strong>サンプルの入手</strong></h2>
+<p>以下のリンクをクリックして、このコードラボのサンプルをあなたの開発マシンにダウンロードしてください。</p>
+<p><a href="https://github.com/googlecodelabs/smarthome-washer/archive/master.zip" target="_blank"><paper-button class="colored" raised><iron-icon icon="file-download"></iron-icon>Download source code</paper-button></a></p>
+<p>...もしくは、コマンドラインで GitHub リポジトリを close することができます:</p>
+<pre><code>$ git clone https://github.com/googlecodelabs/smarthome-washer.git</code></pre>
+<p>ダウンロードした zip ファイルを展開します。</p>
+<aside class="special"><p>Smart Home Washer コードラボリポジトリは、3つのディレクトリを含んでいます:</p>
+<ul>
+<li><img style="max-width: 20.00px" src="img/ec8e77a74db6217c.png"><strong>washer-start</strong> - このコードラボにおいてあなたがビルドする最初のコードです。</li>
+<li><img style="max-width: 20.00px" src="img/ec8e77a74db6217c.png"><strong>washer-done</strong> - 完成したサンプル洗濯機アプリの完全なコード。</li>
+</ul>
+<p>注: 完成したアプリを実行したい場合は、<a href="https://docs.google.com/document/d/1PB5jiZTslCyjYfjzihx9k38nPJ5vwjHii8fEAT5bIy0/edit?ts=5a5fce78#heading=h.rskkl8cka20w" target="_blank">AoG Console</a> でプロジェクトを作成し、次のセクションと Firebase コンソールを参照する必要があります。詳しくは、<a href="https://docs.google.com/document/d/1xdf_uRg3DucsJjrru1xscr_THs7j4kDvA-3DHXZnVUA/edit#heading=h.4ozetiad9rn1" target="_blank">Create a Firebase project and Set up your app</a> を参照してください。</p>
+</aside>
+<h2><strong>Firebaseに接続する</strong></h2>
+<p>あなたが <code>washer-start</code> ディレクトリにいることを確認し、その後あなたの Firebase Project を使用するために Firebase CLI をセットアップします:</p>
+<pre><code>cd washer-start
+firebase use --add</code></pre>
+<p>その後、あなたの Project ID を選択して、指示に従ってください。</p>
+<h2><strong>Firebaseにデプロイする</strong></h2>
+<p><code>washer-start</code> 内の <code>functions</code> フォルダに移動し、<code>npm install</code> を実行します。</p>
+<pre><code>cd functions
+npm install</code></pre>
+<p>依存関係をインストールしてプロジェクトを設定したので、いよいよアプリを実行する準備が整いました。</p>
+<pre><code>cd ../
+firebase deploy</code></pre>
+<p>これは、あなたが見るべきコンソールへの出力です:</p>
+<pre><code>...
+
+✔ Deploy complete!
+
+Project Console: https://console.firebase.google.com/project/&lt;project-id&gt;/overview
+Hosting URL: https://&lt;project-id&gt;.firebaseapp.com</code></pre>
+<p>ウェブアプリは、 <code>https://&lt;project-id&gt;.firebaseapp.com</code> の形式のホスティングURLにて、現在サーブされているはずです。</p>
+<p>このコマンドはまた、Firebase にいくつかの Cloud functions をデプロイしているでしょう。Actions on Google console にて、これらの URL を使う時です。</p>
+<h2><strong>Actions on Google console内でプロジェクトを設定する</strong></h2>
+<p>左側の <strong>Actions</strong> を選択して、<strong> ADD YOUR FIRST ACTION</strong> をクリックします。Smart Home インテントのためのフルフィルメントを提供するバックエンドサーバのURLを入力して、その後 DONE をクリックします。</p>
+<p><img style="max-width: 624.00px" src="img/631c25888529e1e2.png"></p>
+<p><code>https://us-central1-&lt;project-id&gt;.cloudfunctions.net/smarthome</code></p>
+<p><img style="max-width: 624.00px" src="img/511197bdc029226b.png"></p>
+<p>その後、<strong>DONE</strong> をクリックします。</p>
+<p><img style="max-width: 608.00px" src="img/f2b7e6ddf822aa89.png"></p>
+<p>サイドバーにて、Account Linking オプションを選択します。アカウント作成は <strong>No</strong> を選択し、そしてリンク種別が <strong>OAuth</strong> および <strong>Authentication code</strong> であることを確認してください。</p>
+<p><img style="max-width: 624.00px" src="img/28d5b0846647d450.png"></p>
+<p>以下のクライアント情報を入力します。</p>
+<table>
+<tr><td colspan="1" rowspan="1"><p>Client ID</p>
+</td><td colspan="1" rowspan="1"><p>ABC123</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Client secret</p>
+</td><td colspan="1" rowspan="1"><p>DEF456</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Authorization URL</p>
+</td><td colspan="1" rowspan="1"><p>https://us-central1-&lt;project-id&gt;.cloudfunctions.net/fakeauth</p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Token URL</p>
+</td><td colspan="1" rowspan="1"><p>https://us-central1-&lt;project-id&gt;.cloudfunctions.net/faketoken</p>
+</td></tr>
+</table>
+<p>その後、この情報を保存するために、下にある <strong>SAVE</strong> ボタンを選択し、Overview ページに戻ります。</p>
+<p>Simulator ページを開き、あなたのプロジェクトのセットアップを完了するために、<strong>START TESTING</strong> ボタンをクリックします。</p>
+<h2><strong>Googleアシスタントにリンクする</strong></h2>
+<p>セットアップを完了するために、あなたがデプロイした functions である Smart Home クラウドにあなたのGoogleアカウントをリンクする必要があります。</p>
+<aside class="warning"><p>このコードラボには、ユーザークレデンシャルを実際にチェックしないアカウントリンクの実装が含まれています。プロダクションのシステムでは、デバイスを安全に保つために、OAuth 2.0プロトコルを実装すべきです。</p>
+</aside>
+<ul>
+<li>Google Assistant settings を開きます。コンソールと同じアカウントでログインされている必要があります。</li>
+<li>Google Assistant &gt; Settings &gt; Home Control (Services の中) に移動します。</li>
+<li>右下の角にあるプラスアイコンを選択します。</li>
+<li><strong>[test]</strong> プレフィックスを持つあなたのテストアプリが見えるはずです。</li>
+<li>アイテムを選択します。その後、Googleアシスタントは、あなたのサーバを認証し、<code>SYNC</code> リクエストを送信して、あなたのサーバがユーザのデバイスリストを提供することを依頼します。まだデバイスを追加していないため、デバイスは見つかりません。</li>
+</ul>
+<aside class="special"><p>このリンク手順を行っている間に問題が発生した場合は、<a href="https://developers.google.com/actions/smarthome/logging" target="_blank">Stackdriver</a> を使ってエラーログをチェックすることができます。</p>
+</aside>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Creating a washer" duration="15">
+        <p>Smart Home アカウントが Google アシスタントに接続されたので、デバイスの追加やデータの送信を開始することができます。あなたのサーバーが <code>smarthome</code> 関数で扱う必要のある3つのインテントがあります。</p>
+<ul>
+<li>SYNC インテントは、Google アシスタントがユーザーの持つデバイスを知りたいときに発生します。すべてのユーザーのデバイスと共にJSONペイロードで応答する必要があります。これは、ユーザーがアカウントをリンクしたときにあなたのサーバーに送信されます。</li>
+<li>QUERY インテントは、Google アシスタントが現在のデバイスの状態やステータスを知りたいときに発生します。要求された各デバイスの状態と共にJSONペイロードで応答する必要があります。</li>
+<li>EXECUTEインテントは、Google アシスタントがユーザーのためにデバイスを制御したいときに発生します。要求された各デバイスの実行状況を示すJSONペイロードで応答する必要があります。</li>
+</ul>
+<p>デバイスのリストを動的に取得するために、<a href="https://firebase.google.com/docs/functions/" target="_blank">Cloud Functions for Firebase</a> を使用することができます。それはあなたが定義可能な応答でこれら3つのインテントを処理します。洗濯機の状態をホストするために、<a href="https://firebase.google.com/docs/database/" target="_blank">Firebase Realtime Database</a> を使用することができます。</p>
+<h2><strong>SYNCリクエストのアップデート</strong></h2>
+<p>functions/index.js を開きます。これには、Google アシスタントからのリクエストに応答するコードが含まれています。まず、洗濯機が応答するために、SYNC インテントを処理する必要があります。同じ応答をいつも与えることを、今見てみましょう。</p>
+<pre><code>app.onSync(body =&gt; {
+  return {
+    requestId: &#39;ff36a3cc-ec34-11e6-b1a0-64510650abcf&#39;,
+    payload: {
+      agentUserId: &#39;123&#39;,
+      devices: []
+    }
+  };
+});</code></pre>
+<p>今、<code>devices</code> 配列には、何も入っていません。<a href="https://developers.google.com/actions/smarthome/guides/washer" target="_blank">washer</a> を表現するために、その配列に新しい項目を追加します。</p>
+<pre><code>app.onSync(body =&gt; {
+  return {
+    requestId: &#39;ff36a3cc-ec34-11e6-b1a0-64510650abcf&#39;,
+    payload: {
+      agentUserId: &#39;123&#39;, 
+      devices: [{
+        id: &#39;washer&#39;,
+        type: &#39;action.devices.types.WASHER&#39;,
+        traits: [
+          &#39;action.devices.traits.OnOff&#39;,
+          &#39;action.devices.traits.StartStop&#39;,
+          &#39;action.devices.traits.RunCycle&#39;
+        ],
+        name: {
+          defaultNames: &#39;My Washer&#39;],
+          name: &#39;Washer&#39;,
+          nicknames: [&#39;Washer&#39;]
+        },
+        deviceInfo: {
+          manufacturer: &#39;Acme Co&#39;,
+          model: &#39;acme-washer&#39;,
+          hwVersion: &#39;1.0&#39;,
+          swVersion: &#39;1.0.1&#39;
+        },
+        attributes: {
+          pausable: true
+        }
+     }]
+    }
+  };
+});</code></pre>
+<p>では、更新された関数をデプロイします。</p>
+<pre><code>firebase deploy</code></pre>
+<aside class="warning"><p>一つもデバイスが含まれていない場合、アカウントのリンク手順は成功しません。</p>
+</aside>
+<h2><strong>Googleアシスタントにあなたの統合を再度リンクする</strong></h2>
+<p>新しい SYNC 応答をテストするために、統合のリンクを解除し、再度リンクする必要があります。後で、アカウントのリンクを解除せずに SYNC 要求を発生できるように、Request Sync 機能を追加します。</p>
+<ul>
+<li>Google アシスタント設定を開きます。</li>
+<li>Google Assistant &gt; Settings &gt; Home Control (Services の中) に移動します。</li>
+<li>右下の隅にあるプラスボタンを選択します。</li>
+<li><strong>Linked services</strong> ヘッダーの下にて、<strong>[test]</strong> プレフィックス付きであなたのテストアプリが見えます。</li>
+<li>対象の項目を選択して、<strong>Unlink account</strong> を選択します。</li>
+<li>あなたのアカウントのリンクを解除した後、アプリが再び <strong>Add new</strong> ヘッダーの下に表示されます。</li>
+<li>そのアイテムを選択します。Google アシスタントは、その後あなたのサーバを認証し、ユーザのデバイスのリストをあなたのサーバに問い合わせるために <code>SYNC</code> リクエストを送信します。あなたの washer が見えるはずです。</li>
+</ul>
+<h2><strong>EXECUTE インテントを処理する</strong></h2>
+<p>今、洗濯機の現在の状況をユーザに知らせる、あるいはそれを制御するための2つのインテントを処理しなければなりません。最初に、<a href="https://developers.google.com/actions/smarthome/create-app#actiondevicesexecute" target="_blank">EXECUTE インテント</a>から追加しましょう。</p>
+<p><img style="max-width: 258.00px" src="img/8d9e95b1ff5350e6.png"></p>
+<p><a href="https://console.firebase.google.com/" target="_blank">Firebase console</a> に移動し、プロジェクトを選択します。次に、Database ページを開いて、Realtime Database を使用するために <strong>GET STARTED</strong> を選択します。コンソールを使用して、 <code>washer</code> という新しい子を追加します。washer の下で、トレイトの値を保存するために子供が追加されます。</p>
+<pre><code>washer
+│
+├┬ OnOff 
+│└─ on: false
+├┬ RunCycle
+│└─ dummy: false
+├┬ StartStop
+│├─ isPaused: false
+│└─ isRunning: false</code></pre>
+<p><code>functions/index.js</code> 内で、以下のように EXECUTE ハンドラを編集します:</p>
+<pre><code>app.onExecute((body) =&gt; {
+  const {requestId} = body;
+  const payload = {
+    commands: [{
+      ids: [],
+      status: &#39;SUCCESS&#39;,
+      states: {
+        online: true,
+      },
+    }],
+  };
+  for (const input of body.inputs) {
+    for (const command of input.payload.commands) {
+      for (const device of command.devices) {
+        const deviceId = device.id;
+        payload.commands[0].ids.push(deviceId);
+        for (const execution of command.execution) {
+          const execCommand = execution.command;
+          const {params} = execution;
+          switch (execCommand) {
+            case &#39;action.devices.commands.OnOff&#39;:
+              firebaseRef.child(deviceId).child(&#39;OnOff&#39;).update({
+                on: params.on,
+              });
+              payload.commands[0].states.on = params.on;
+              break;
+            case &#39;action.devices.commands.StartStop&#39;:
+              firebaseRef.child(deviceId).child(&#39;StartStop&#39;).update({
+                isRunning: params.start,
+              });
+              payload.commands[0].states.isRunning = params.start;
+              break;
+            case &#39;action.devices.commands.PauseUnpause&#39;:
+              firebaseRef.child(deviceId).child(&#39;StartStop&#39;).update({
+                isPaused: params.pause,
+              });
+              payload.commands[0].states.isPaused = params.pause;
+              break;
+          }
+        }
+      }
+    }
+  }
+  return {
+    requestId: requestId,
+    payload: payload,
+  };
+});</code></pre>
+<p>上記の実装では、各コマンドを反復し、Firebase 内の値を更新してから、デバイスの現在の状態を示すペイロードで応答します。</p>
+<p>では、更新された関数をデプロイします。</p>
+<pre><code>firebase deploy</code></pre>
+<p><img style="max-width: 624.00px" src="img/9c8696ef6c3032f0.png"></p>
+<p>これで、音声コマンドを入力すると値の変化を確認できます。あなたはこれらのコマンドを与えるためにあなたの携帯電話を使用することができます。</p>
+<p><em>&#34;Turn on my washer&#34;</em></p>
+<p><em>&#34;Pause my washer&#34;</em></p>
+<p><em>&#34;Stop my washer&#34;</em></p>
+<p>疑問の質問をサポートするために、<em>&#34;Is my washer on?&#34;</em> のように、QUERY インテントを実装する必要があります。</p>
+<h2><strong>QUERYインテントの処理</strong></h2>
+<p><a href="https://developers.google.com/actions/smarthome/create-app#actiondevicesquery" target="_blank">QUERY インテント</a>は、デバイスのセットを含みます。各デバイスにて、それの現在の状況を応答する必要があります。</p>
+<p><code>functions/index.js</code> 内で、QUERY ハンドラを以下のように編集します:</p>
+<pre><code>app.onQuery((body) =&gt; {
+  const {requestId} = body;
+  const payload = {
+    devices: {},
+  };
+  const queryPromises = [];
+  for (const input of body.inputs) {
+    for (const device of input.payload.devices) {
+      const deviceId = device.id;
+      queryPromises.push(queryDevice(deviceId)
+        .then((data) =&gt; {
+          // Add response to device payload
+          payload.devices[deviceId] = data;
+        }
+        ));
+    }
+  }
+  // Wait for all promises to resolve
+  return Promise.all(queryPromises).then((values) =&gt; ({
+    requestId: requestId,
+    payload: payload,
+  })
+  );
+});</code></pre>
+<p>これで、質問を尋ねることによって、あなたの洗濯機の現在の状況を知ることができます。</p>
+<p><em>&#34;Is my washer on?&#34;</em></p>
+<p><em>&#34;Is my washer running?&#34;</em></p>
+<p>今、3つ全てのインテントを実装したので、あなたは洗濯機に追加の機能を実装することができます。</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Add Modes" duration="10">
+        <p>モードとトグルを使用すると、開発者によって定義された名前でデバイスの特定のコンポーネントを制御することができます。このコードラボでは、洗濯機は洗濯物のサイズを小さくするか大きくするかを定義するモードを備えています。</p>
+<p>開始するのですが、モードを表示するために index.html のセクションのコメントを外します:</p>
+<pre><code>&lt;div id=&#39;demo-washer-modes-main&#39;&gt;
+    &lt;label&gt;Washer Mode&lt;/label&gt;
+    &lt;br&gt;
+    &lt;label id=&#34;demo-washer-modes-small&#34; class=&#34;mdl-radio mdl-js-radio mdl-js-ripple-effect&#34; for=&#34;demo-washer-modes-small-in&#34;&gt;
+      &lt;input checked class=&#34;mdl-radio__button&#34; id=&#34;demo-washer-modes-small-in&#34; name=&#34;load&#34; type=&#34;radio&#34;
+               value=&#34;on&#34;&gt;
+      &lt;span class=&#34;mdl-radio__label&#34;&gt;Small&lt;/span&gt;
+    &lt;/label&gt;
+    &lt;label id=&#34;demo-washer-modes-large&#34; class=&#34;mdl-radio mdl-js-radio mdl-js-ripple-effect&#34; for=&#34;demo-washer-modes-large-in&#34;&gt;
+      &lt;input class=&#34;mdl-radio__button&#34; id=&#34;demo-washer-modes-large-in&#34; name=&#34;load&#34; type=&#34;radio&#34; value=&#34;off&#34;&gt;
+      &lt;span class=&#34;mdl-radio__label&#34;&gt;Large&lt;/span&gt;
+    &lt;/label&gt;
+    &lt;br&gt;
+    &lt;br&gt;
+&lt;/div&gt;</code></pre>
+<p><strong>UPDATE</strong> ボタンを押した際に、モードが Firebase に格納されます。</p>
+<p>SYNC 応答にて、この新しいモードについての情報を追加する必要があります。これは、以下のレスポンスに示されるように、 <code>attributes</code> オブジェクトにて表示されます。</p>
+<pre><code>app.onSync(body =&gt; {
+  return {
+    requestId: &#39;ff36a3cc-ec34-11e6-b1a0-64510650abcf&#39;,
+    payload: {
+      agentUserId: &#39;123&#39;,
+      devices: [{
+        id: &#39;washer&#39;,
+        type: &#39;action.devices.types.WASHER&#39;,
+        traits: [
+          &#39;action.devices.traits.OnOff&#39;,
+          &#39;action.devices.traits.StartStop&#39;,
+          &#39;action.devices.traits.RunCycle&#39;,
+          &#39;action.devices.traits.Modes&#39;,
+        ],
+        name: {
+          defaultNames: [&#39;My Washer&#39;],
+          name: &#39;Washer&#39;,
+          nicknames: [&#39;Washer&#39;]
+        },
+        deviceInfo: {
+          manufacturer: &#39;Acme Co&#39;,
+          model: &#39;acme-washer&#39;,
+          hwVersion: &#39;1.0&#39;,
+          swVersion: &#39;1.0.1&#39;
+        },
+        attributes: {
+          pausable: true,
+          availableModes: [{
+              name: &#39;load&#39;,
+              name_values: [{
+                  name_synonym: [&#39;load&#39;],
+                  lang: &#39;en&#39;
+                }],
+              settings: [{
+                  setting_name: &#39;small&#39;,
+                  setting_values: [{
+                      setting_synonym: [&#39;small&#39;],
+                      lang: &#39;en&#39;
+                    }]
+                  }, {
+                  setting_name: &#39;large&#39;,
+                  setting_values: [{
+                      setting_synonym: [&#39;large&#39;],
+                      lang: &#39;en&#39;
+                    }]
+                }],
+              ordered: true
+            }]        
+        }
+    }]
+    }
+  };
+});</code></pre>
+<aside class="warning"><p>Googleアシスタントを使ってあなたがこのモードを使うことができるようになる前に、あなたは Home Control 設定にてアカウントのリンク解除および再リンクを行う必要があります。</p>
+</aside>
+<p>EXECUTE インテントにて、以下のように <code>action.devices.commands.SetModes</code> コマンドを追加する必要があります。</p>
+<pre><code>app.onExecute((body) =&gt; {
+  const {requestId} = body;
+  const payload = {
+    commands: [{
+      ids: [],
+      status: &#39;SUCCESS&#39;,
+      states: {
+        online: true,
+      },
+    }],
+  };
+  for (const input of body.inputs) {
+    for (const command of input.payload.commands) {
+      for (const device of command.devices) {
+        const deviceId = device.id;
+        payload.commands[0].ids.push(deviceId);
+        for (const execution of command.execution) {
+          const execCommand = execution.command;
+          const {params} = execution;
+          switch (execCommand) {
+            case &#39;action.devices.commands.OnOff&#39;:
+              firebaseRef.child(deviceId).child(&#39;OnOff&#39;).update({
+                on: params.on,
+              });
+              payload.commands[0].states.on = params.on;
+              break;
+            case &#39;action.devices.commands.StartStop&#39;:
+              firebaseRef.child(deviceId).child(&#39;StartStop&#39;).update({
+                isRunning: params.start,
+              });
+              payload.commands[0].states.isRunning = params.start;
+              break;
+            case &#39;action.devices.commands.PauseUnpause&#39;:
+              firebaseRef.child(deviceId).child(&#39;StartStop&#39;).update({
+                isPaused: params.pause,
+              });
+              payload.commands[0].states.isPaused = params.pause;
+              break;
+            case &#39;action.devices.commands.SetModes&#39;:
+              firebaseRef.child(deviceId).child(&#39;Modes&#39;).update({
+                load: params.updateModeSettings.load,
+              });
+              break;
+          }
+        }
+      }
+    }
+  }
+  return {
+    requestId: requestId,
+    payload: payload,
+  };
+});</code></pre>
+<p>今、あなたは洗濯機にモードをセットするためにコマンドを与えることができます。</p>
+<p><em>&#34;Set the washer to a large load&#34;</em></p>
+<p>最終的に、あなたは洗濯機の現在の状況についての質問に答えるために、QUERY レスポンスを更新する必要があります。モードを取得するために、<code>queryFirebase</code> および <code>queryDevice</code> 関数に更新された変更を追加します。</p>
+<pre><code>const queryFirebase = (deviceId) =&gt; firebaseRef.child(deviceId).once(&#39;value&#39;)
+  .then((snapshot) =&gt; {
+    const snapshotVal = snapshot.val();
+    return {
+      on: snapshotVal.OnOff.on,
+      isPaused: snapshotVal.StartStop.isPaused,
+      isRunning: snapshotVal.StartStop.isRunning,
+      load: snapshotVal.Modes.load,
+    };
+  });
+
+const queryDevice = (deviceId) =&gt;    queryFirebase(deviceId).then((data) =&gt; ({
+  on: data.on,
+  isPaused: data.isPaused,
+  isRunning: data.isRunning,
+  currentRunCycle: [{
+    currentCycle: &#39;rinse&#39;,
+    nextCycle: &#39;spin&#39;,
+    lang: &#39;en&#39;,
+  }],
+  currentTotalRemainingTime: 1212,
+  currentCycleRemainingTime: 301,
+  currentModeSettings: {
+    load: data.load,
+  },
+}));</code></pre>
+<p>以下のようにして、あなたの洗濯機について質問を尋ねることができます:</p>
+<p><em>&#34;Is my washer small load?&#34;</em></p>
+<aside class="warning"><p><code>currentRunCycle</code>、<code>currentTotalTimeRemaining</code>、および <code>currentCycleRemaining</code> フィールドは、<a href="https://developers.google.com/actions/smarthome/traits/runcycle" target="_blank">RunCycle トレイト</a>に関連しています。ドキュメントでは、実装方法の詳細が説明されています。このコードラボの RunCycle トレイトには変更を加えません。</p>
+</aside>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Add Toggles" duration="10">
+        <p><a href="https://developers.google.com/actions/smarthome/traits/toggles" target="_blank">トグル</a>は、洗濯機がターボモードであるかどうかなど、true/false の状態を持つデバイスの名前付きアスペクトを表します。</p>
+<p>開始するのですが、モードを表示するために <code>index.html</code> のセクションのコメントを外します。<strong>UPDATE</strong> ボタンを押した際には、Firebase にモードが格納されます。</p>
+<pre><code>&lt;div id=&#39;demo-washer-toggles-main&#39;&gt;
+  &lt;label id=&#34;demo-washer-toggles&#34; class=&#34;mdl-switch mdl-js-switch mdl-js-ripple-effect&#34; for=&#34;demo-washer-toggles-in&#34;&gt;
+    &lt;input type=&#34;checkbox&#34; id=&#34;demo-washer-toggles-in&#34; class=&#34;mdl-switch__input&#34;&gt;
+    &lt;span class=&#34;mdl-switch__label&#34;&gt;Is in Turbo&lt;/span&gt;
+  &lt;/label&gt;
+&lt;/div&gt;</code></pre>
+<p>SYNC レスポンスでは、この新しいモードに関する情報を追加する必要があります。これは、以下のレスポンスに示すように、<code>attributes</code> オブジェクトに表示されます。</p>
+<pre><code>app.onSync(body =&gt; {
+  return {
+    requestId: &#39;ff36a3cc-ec34-11e6-b1a0-64510650abcf&#39;,
+    payload: {
+      agentUserId: &#39;123&#39;,
+      devices: [{
+        id: &#39;washer&#39;,
+        type: &#39;action.devices.types.WASHER&#39;,
+        traits: [
+          &#39;action.devices.traits.OnOff&#39;,
+          &#39;action.devices.traits.StartStop&#39;,
+          &#39;action.devices.traits.RunCycle&#39;,
+          &#39;action.devices.traits.Modes&#39;,
+          &#39;action.devices.traits.Toggles&#39;,
+        ],
+        name: {
+          defaultNames: [&#39;My Washer&#39;],
+          name: &#39;Washer&#39;,
+          nicknames: [&#39;Washer&#39;]
+        },
+        deviceInfo: {
+          manufacturer: &#39;Acme Co&#39;,
+          model: &#39;acme-washer&#39;,
+          hwVersion: &#39;1.0&#39;,
+          swVersion: &#39;1.0.1&#39;
+        },
+        attributes: {
+          pausable: true,
+          availableModes: [{
+              name: &#39;load&#39;,
+              name_values: [{
+                  name_synonym: [&#39;load&#39;],
+                  lang: &#39;en&#39;
+                }],
+              settings: [{
+                  setting_name: &#39;small&#39;,
+                  setting_values: [{
+                      setting_synonym: [&#39;small&#39;],
+                      lang: &#39;en&#39;
+                    }]
+                  }, {
+                  setting_name: &#39;large&#39;,
+                  setting_values: [{
+                      setting_synonym: [&#39;large&#39;],
+                      lang: &#39;en&#39;
+                    }]
+                }],
+              ordered: true
+            }],
+          availableToggles: [{
+              name: &#39;Turbo&#39;,
+              name_values: [{
+                  name_synonym: [&#39;turbo&#39;],
+                  lang: &#39;en&#39;
+              }]
+          }]
+        }
+    }]
+    }
+  };
+});</code></pre>
+<aside class="warning"><p>Googleアシスタントを使ってあなたがこのトグルを使うことができるようになる前に、あなたは Home Control 設定にてアカウントのリンク解除および再リンクを行う必要があります。</p>
+</aside>
+<p>あなたの EXECUTE インテントにおいて、以下に示すように、 <code>action.devices.commands.SetToggles</code> コマンドを追加する必要があります。</p>
+<pre><code>app.onExecute((body) =&gt; {
+  const {requestId} = body;
+  const payload = {
+    commands: [{
+      ids: [],
+      status: &#39;SUCCESS&#39;,
+      states: {
+        online: true,
+      },
+    }],
+  };
+  for (const input of body.inputs) {
+    for (const command of input.payload.commands) {
+      for (const device of command.devices) {
+        const deviceId = device.id;
+        payload.commands[0].ids.push(deviceId);
+        for (const execution of command.execution) {
+          const execCommand = execution.command;
+          const {params} = execution;
+          switch (execCommand) {
+            case &#39;action.devices.commands.OnOff&#39;:
+              firebaseRef.child(deviceId).child(&#39;OnOff&#39;).update({
+                on: params.on,
+              });
+              payload.commands[0].states.on = params.on;
+              break;
+            case &#39;action.devices.commands.StartStop&#39;:
+              firebaseRef.child(deviceId).child(&#39;StartStop&#39;).update({
+                isRunning: params.start,
+              });
+              payload.commands[0].states.isRunning = params.start;
+              break;
+            case &#39;action.devices.commands.PauseUnpause&#39;:
+              firebaseRef.child(deviceId).child(&#39;StartStop&#39;).update({
+                isPaused: params.pause,
+              });
+              payload.commands[0].states.isPaused = params.pause;
+              break;
+            case &#39;action.devices.commands.SetModes&#39;:
+              firebaseRef.child(deviceId).child(&#39;Modes&#39;).update({
+                load: params.updateModeSettings.load,
+              });
+              break;
+            case &#39;action.devices.commands.SetToggles&#39;:
+              firebaseRef.child(deviceId).child(&#39;Toggles&#39;).update({
+                Turbo: params.updateToggleSettings.Turbo,
+              });
+              break;
+          }
+        }
+      }
+    }
+  }
+  return {
+    requestId: requestId,
+    payload: payload,
+  };
+});</code></pre>
+<p>これで、あなたは洗濯機のモードをセットするためにコマンドを与えることができます。</p>
+<p><em>&#34;Turn on turbo for the washer&#34;</em></p>
+<p>最終的に、あなたは洗濯機のターボモードについての質問に答えるために、QUERY レスポンスを更新する必要があります。トグルの状況を取得するために、queryFirebase および queryDevice 関数に更新された変更を追加します。</p>
+<pre><code>const queryFirebase = (deviceId) =&gt; firebaseRef.child(deviceId).once(&#39;value&#39;)
+  .then((snapshot) =&gt; {
+    const snapshotVal = snapshot.val();
+    return {
+      on: snapshotVal.OnOff.on,
+      isPaused: snapshotVal.StartStop.isPaused,
+      isRunning: snapshotVal.StartStop.isRunning,
+      load: snapshotVal.Modes.load,
+      turbo: snapshotVal.Toggles.Turbo,
+    };
+  });
+
+const queryDevice = (deviceId) =&gt; queryFirebase(deviceId).then((data) =&gt; ({
+  on: data.on,
+  isPaused: data.isPaused,
+  isRunning: data.isRunning,
+  currentRunCycle: [{
+    currentCycle: &#39;rinse&#39;,
+    nextCycle: &#39;spin&#39;,
+    lang: &#39;en&#39;,
+  }],
+  currentTotalRemainingTime: 1212,
+  currentCycleRemainingTime: 301,
+  currentModeSettings: {
+    load: data.load,
+  },
+  currentToggleSettings: {
+    Turbo: data.turbo,
+  },
+}));</code></pre>
+<p>あなたは以下のように、洗濯機についての質問を尋ねることができます。</p>
+<p><em>&#34;Is my washer in turbo mode?&#34;</em></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Add Request Sync" duration="5">
+        <p>今、洗濯機は完全に実装されています。あなたは、この洗濯機の現在の状況を得て、制御することができます。しかしながら、新しい機能を追加する度に、あなたは統合のリンク解除を行い、そして再リンクしなければなりませんでした。</p>
+<p>SYNC リクエストは、このリンク手順の間であなたのサーバに届くのみです。Request Sync APIの追加によって、SYNCリクエストをトリガーすることができ、ユーザアカウントのリンク解除および再リンクを行うことなしに、ユーザのデバイスリストを更新することが可能になります。</p>
+<p>Request Sync APIは、パラメータとしてユーザIDを受け取ります。これは、あなたのサーバにおいてユーザを示すユーザIDであるべきです。このコードラボでは、その値は &#34;123&#34; とハードコードされます。</p>
+<ol type="1" start="1">
+<li>Cloud Platform Console にて、<a href="https://console.cloud.google.com/project" target="_blank">Projects</a> ページに移動してください。そして、あなたの Smart Home プロジェクトIDに一致するプロジェクトを選択します。</li>
+<li><a href="https://console.cloud.google.com/apis/api/homegraph.googleapis.com/overview" target="_blank">HomeGraph API</a> を有効にします。</li>
+<li>API キーを生成します。左のナビゲーションから、APIs &amp; Services にある Credentials を選択します。Create Credentials ボタンをクリックし、そして API キーを選択します。</li>
+<li>functions/index.js 内の Smart Home コンストラクタに、API キーを追加します。</li>
+</ol>
+<pre><code>const app = smarthome({
+  API_KEY: &#39;&lt;api-key&gt;&#39;
+});</code></pre>
+<p>フロントエンドウェブ UI にて、ヘッダにリフレッシュアイコンがあります。Request Sync 呼び出しをさせるために、クリックリスナーを UI に追加することができます。</p>
+<p><code>main.js</code> を以下のようにします:</p>
+<pre><code>    this.requestSync = document.getElementById(&#39;request-sync&#39;);
+    this.requestSync.addEventListener(&#39;click&#39;, () =&gt; {
+      var xhttp = new XMLHttpRequest();
+      xhttp.onreadystatechange = function() {
+        if (this.readyState == 4 &amp;&amp; this.status == 200) {
+          console.log(&#34;Request SYNC success!&#34;);
+        }
+      };
+      xhttp.open(&#34;POST&#34;, &#34;https://us-central1-&lt;project-id&gt;.cloudfunctions.net/requestsync&#34;, true);
+      xhttp.send();
+    });</code></pre>
+<p>これで、そのアイコンをクリックすると、あなたのサーバのログに SYNC リクエストが出てきます。デバイスを更新する、新しいデバイスを追加する、またはこのデバイスを削除する度に、新しい Request Sync 呼び出しが送信されて、その際にはデバイスの一覧が表示されるのがわかります。</p>
+<p>応答はまた、あなたのログに表示されます。そのログは、Firebase を通じて見ることができます。</p>
+<p><img style="max-width: 490.00px" src="img/98cd57ac0b615158.png"></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Add Report State" duration="5">
+        <p><a href="https://developers.google.com/actions/smarthome/create-app" target="_blank">Report State API</a> を使って、Smart Home 統合は Home graph にデバイスの状況を積極的に送信することができます。これにより、ユーザの問い合わせを迅速に完了でき、そして携帯端末やスマートディスプレイ上のリッチな UI を使って、全てのユーザのデバイスの状況を知ることができるようになります。</p>
+<p>洗濯機の状況を変更するために <strong>UPDATE</strong> ボタンをクリックした際に、あなたは Home graph にこれをレポートする追加の手順を加えることができます。</p>
+<h2><strong>JWTの生成</strong></h2>
+<p>私たちの関数を書くには、データが安全に送信されることを確認する必要があります。これは<a href="https://jwt.io/" target="_blank">JWT (JSON web tokens)</a> を介して行われます。このコードラボでは、このトークンの作成を容易にしてくれる googleapis npm 依存ライブラリを使用します。</p>
+<p><img style="max-width: 624.00px" src="img/65b359523c93df75.png"></p>
+<p>あなたのプロジェクトの <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud Console</a> に行きます。<strong>APIs &amp; Services</strong> セクション内の <strong>Credentials</strong> を選択します。<strong>Create Credentials</strong> ボタンをクリックし、そして <strong>Service account key</strong> を選択します。<strong>Role</strong> 設定のために、<strong>Project -&gt; Editor</strong> を選択します。</p>
+<p><img style="max-width: 624.00px" src="img/befdf6ffa32f1fd1.png"></p>
+<p>Service account の作成後に、JSON ファイルをダウンロードします。このファイルを、プロジェクト内の functions フォルダに <code>key.json</code> という名前で保存してください。</p>
+<h2><strong>API呼び出しの追加</strong></h2>
+<p>これは、Firebase データベーストリガーを使用して行うことができます。特定の書き込みイベントが発生すると、自動的に状態を報告することができます。</p>
+<p><code>functions/index.js</code> 内を以下のようにします。</p>
+<pre><code>exports.reportstate = functions.database.ref(&#39;{deviceId}&#39;).onWrite((event) =&gt; {
+  console.info(&#39;Firebase write event triggered this cloud function&#39;);
+  const https = require(&#39;https&#39;);
+  const {google} = require(&#39;googleapis&#39;);
+  const key = require(&#39;./key.json&#39;);
+  const jwtClient = new google.auth.JWT(
+    key.client_email,
+    null,
+    key.private_key,
+    [&#39;https://www.googleapis.com/auth/homegraph&#39;],
+    null
+  );
+
+  const snapshotVal = event.data.val();
+
+  const postData = {
+    requestId: &#39;ff36a3cc&#39;, /* Any unique ID */
+    agentUserId: &#39;123&#39;, /* Hardcoded user ID */
+    payload: {
+      devices: {
+        states: {
+          /* Report the current state of our washer */
+          [event.params.deviceId]: {
+            on: snapshotVal.OnOff.on,
+            isPaused: snapshotVal.StartStop.isPaused,
+            isRunning: snapshotVal.StartStop.isRunning,
+          },
+        },
+      },
+    },
+  };
+
+  jwtClient.authorize((err, tokens) =&gt; {
+    if (err) {
+      console.error(err);
+      return;
+    }
+    const options = {
+      hostname: &#39;homegraph.googleapis.com&#39;,
+      port: 443,
+      path: &#39;/v1/devices:reportStateAndNotification&#39;,
+      method: &#39;POST&#39;,
+      headers: {
+        Authorization: ` Bearer ${tokens.access_token}`,
+      },
+    };
+    return new Promise((resolve, reject) =&gt; {
+      let responseData = &#39;&#39;;
+      const req = https.request(options, (res) =&gt; {
+        res.on(&#39;data&#39;, (d) =&gt; {
+          responseData += d.toString();
+        });
+        res.on(&#39;end&#39;, () =&gt; {
+          resolve(responseData);
+        });
+      });
+      req.on(&#39;error&#39;, (e) =&gt; {
+        reject(e);
+      });
+      // Write data to request body
+      req.write(JSON.stringify(postData));
+      req.end();
+    }).then((data) =&gt; {
+      console.info(data);
+    });
+  });
+});</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Next steps" duration="0">
+        <p>おめでとうございます！あなたは Smart Home を使った自身のデバイスを Google アシスタントに統合することに成功しました。</p>
+<p>ここに、あなたがより深く実装することができるいくつのアイディアがあります。</p>
+<ul>
+<li>あなたのデバイスでより多くの<a href="https://developers.google.com/actions/smarthome/traits/" target="_blank">サポートされたトレイト</a>を追加する。</li>
+<li>デバイスの<a href="https://developers.google.com/actions/smarthome/guides/" target="_blank">より多くのタイプ</a>のサポートを追加する。</li>
+<li>私たちの <a href="https://github.com/actions-on-google/smart-home-nodejs" target="_blank">GitHub サンプル</a>をチェックアウトして、より深く見ていく。</li>
+</ul>
+<p>もしあなたがデバイスメーカーの方だった場合は、デバイスを Google アシスタントに統合した後、審査のためにあなたのアクションを提出できます。あなたの統合は、認証プロセスを経て提出されます。</p>
+<h2 class="checklist"><strong>What we&#39;ve covered</strong></h2>
+<ul class="checklist">
+<li>モデルおよびトグルを使った洗濯機の構築。</li>
+<li>Request Sync および Report State を使った、Google アシスタントへの積極的なリクエスト送信。</li>
+</ul>
+
+
+      </google-codelab-step>
+    
+  </google-codelab>
+
+  <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-49880327-14', 'auto');
+
+    (function() {
+      var gaCodelab = '';
+      if (gaCodelab) {
+        ga('create', gaCodelab, 'auto', {name: 'codelab'});
+      }
+
+      var gaView;
+      var parts = location.search.substring(1).split('&');
+      for (var i = 0; i < parts.length; i++) {
+        var param = parts[i].split('=');
+        if (param[0] === 'viewga') {
+          gaView = param[1];
+          break;
+        }
+      }
+      if (gaView && gaView !== gaCodelab) {
+        ga('create', gaView, 'auto', {name: 'view'});
+      }
+    })();
+  </script>
+
+</body>
+</html>

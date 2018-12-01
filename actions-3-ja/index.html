@@ -1,0 +1,804 @@
+
+<!doctype html>
+
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <meta name="theme-color" content="#4F7DC9">
+  <meta charset="UTF-8">
+  <title>Build Actions for the Google Assistant (Level 3)</title>
+  <script src="./bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <link rel="import" href="./elements/codelab.html">
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro:400|Roboto:400,300,400italic,500,700|Roboto+Mono">
+  <style is="custom-style">
+    body {
+      font-family: "Roboto",sans-serif;
+      background: var(--google-codelab-background, #F8F9FA);
+    }
+  </style>
+  
+</head>
+<body unresolved class="fullbleed">
+
+  <google-codelab title="Build Actions for the Google Assistant (Level 3)"
+                  environment="web"
+                  feedback-link="">
+    
+      <google-codelab-step label="Overview" duration="2">
+        <p>Actions on Googleは、スマートスピーカー、携帯電話、車、テレビ、ヘッドフォンなど、5億以上のデバイスにわたって、Googleの仮想パーソナルアシスタントである<a href="https://assistant.google.com/" target="_blank">Googleアシスタント</a>の機能を拡張するためのソフトウェアを作成できる、開発者向けプラットフォームです。ユーザーは、食料品の購入や乗車予約など、何かを達成するためにGoogleアシスタントを会話に加えることができます（現在の機能の完全なリストについては、<a href="https://assistant.google.com/explore/" target="_blank">アクションディレクトリ</a>をご覧ください）。開発者は、Actions on Googleを使用して、ユーザーとサードパーティのフルフィルメントサービスとの間の楽しく効果的な会話体験を簡単に作成し活用することができます。</p>
+<p>このコードラボは、マルチモジュールのチュートリアルの一部です。各モジュールは、単独で学習することができますし、または他のモジュールと共に順々に学習することもできます。それぞれのモジュールでは、与えられたソフトウェア要件からアクションを構築する方法と、コードをテストする方法に関する、エンドツーエンドの指示を提供します。また、ユーザーに高品質の会話体験を提供するアクションを実装するために必要な概念とベストプラクティスについても説明します。</p>
+<p>このコードラボは、Actions on Googleを使った開発に対する中級以上のレベルのコンセプトをカバーします。私たちは、このコードラボを開始する前に、<a href="https://codelabs.developers.google.com/codelabs/actions-1-ja/index.html#0" target="_blank">Level 1</a> および <a href="https://codelabs.developers.google.com/codelabs/actions-2-ja/index.html#0" target="_blank">Level 2</a> のコードラボにてカバーされるトピックについて、あなた自身で習熟しておくことをお勧めします。</p>
+<h2><strong>何をつくりますか？</strong></h2>
+<p>このコードラボでは、あなたはこれらの追加機能を含むことで会話アクションを洗練させます。</p>
+<ul>
+<li>会話セッション間でユーザの名前を覚えておきます。</li>
+<li>入力の指示に続くユーザの沈黙を処理します。</li>
+<li>会話の途中の任意のポイントにてアクションから離脱することをユーザに許可します。</li>
+<li>画面がサポートされたデバイス上で視覚的な選択の応答をユーザに提示します。</li>
+</ul>
+<p>以下のスクリーンショットは、あなたが開発するアクションでの会話フローの例を示しています。</p>
+<p><img style="max-width: 602.00px" src="img/5e15df720c330a03.png"></p>
+<p><img style="max-width: 602.00px" src="img/3dd482a35e29018.png"></p>
+<h2 class="checklist"><strong>What you&#39;ll learn</strong></h2>
+<ul class="checklist">
+<li>会話型アクションを設計する際のサンプル対話の作成方法。</li>
+<li>会話を横断するストレージを使った2回目以降の訪問時のユーザへの挨拶のパーソナライズ方法。</li>
+<li>ユーザの沈黙や取り消しのうまい処理方法。</li>
+<li>もしユーザが画面がサポートされたデバイスにいる場合にユーザにリッチで視覚的な応答（すなわち、カルーセル）を送るための、および音声のみのデバイス向けにBasic cardを送るための、複数のサーフェス向けのあなたのアクションの設計方法。</li>
+<li>カルーセルを通じて表示された選択肢のリストからのユーザの選択を処理する方法。</li>
+</ul>
+<h2><strong>必要なもの</strong></h2>
+<p>以下のツールがあなたの環境に必要となります。</p>
+<ul>
+<li><a href="https://www.jetbrains.com/webstorm" target="_blank">WebStorm</a>、<a href="https://atom.io/" target="_blank">Atom</a>、または <a href="https://www.sublimetext.com/" target="_blank">Sublime</a> のような、あなたが選択したIDE/テキストエディタ。</li>
+<li>インストールされている NodeJS、npm、および git を含むシェルコマンドを実行するためのターミナル。</li>
+<li><a href="https://www.google.com/chrome/" target="_blank">Chrome</a>のような、ウェブブラウザ。</li>
+</ul>
+<p>このコードラボで使われる Webhook コードを理解するために <a href="https://www.javascript.com/" target="_blank">JavaScript</a> (ES6) に精通していることを強く勧めますが、必須ではありません。</p>
+<h2><strong>任意: サンプルコード</strong></h2>
+<p>任意ですが、私たちの <a href="https://github.com/actions-on-google/codelabs-nodejs" target="_blank">GitHubリポジトリ</a> から、このコードラボの全てのプロジェクトコードを得ることができます。</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Install the Firebase command-line interface" duration="5">
+        <p>もしあなたが既にFirebase command-line interfaceをインストールしている場合は、ここの手順を行わずに、次のセクションに進むことができます。</p>
+<p>Firebase Command Line Interface (CLI) は、Cloud Functions にあなたの Actions project をデプロイ可能にします。</p>
+<aside class="special"><p><strong>Tip:</strong> CLIをインストールするために、あなたは <a href="https://nodejs.org/en/" target="_blank">Node.js</a> に通常含まれる <a href="https://www.npmjs.com/" target="_blank">npm</a> をインストールする必要があります。</p>
+</aside>
+<p>CLIをインストールまたはアップグレードするために、以下の npm コマンドを実行してください:</p>
+<pre><code>npm -g install firebase-tools</code></pre>
+<aside class="warning"><p>動きませんか？ <a href="https://docs.npmjs.com/getting-started/fixing-npm-permissions" target="_blank">npm のパーミッションを変更</a>する必要があるかも知れません。</p>
+</aside>
+<p>CLI が正しくインストールされたかどうかを検証するために、ターミナルを開いて、以下を実行してください:</p>
+<pre><code>firebase --version</code></pre>
+<p>Cloud Functions の最新の機能全てが必要となるので、Firebase CLI のバージョンが <strong>3.5.0</strong> 以上かどうかを確認してください。もしそうでなければ、3.5.0 以上にアップグレードするために、 <code>npm install -g firebase-tools</code> を実行してください。</p>
+<p>次のコマンドを実行して、Firebase CLI を認可します:</p>
+<pre><code>firebase login</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Set up for local development" duration="10">
+        <p>このコードラボでは、あなたは <a href="https://codelabs.developers.google.com/codelabs/actions-2-ja/index.html#0" target="_blank">Level 2</a> コードラボを終えている時点から開始していることを想定しています。</p>
+<h2><strong>ベースファイルをダウンロードする</strong></h2>
+<p>もしローカルにコードラボを clone していない場合は、以下のコマンドを実行して、コードラボのGitHubリポジトリを clone してください。</p>
+<pre><code>git clone https://github.com/actions-on-google/codelabs-nodejs</code></pre>
+<p>わかりやすさの目的のために、私たちは <code>/level2-complete</code> ディレクトリの名前を <code>/level3</code> に変更することを強くお勧めします。以下のように、ターミナル内で <code>mv</code> コマンドを使うことでそれを行うことが可能です。</p>
+<pre><code>$ cd codelabs-nodejs
+$ mv ./level2-complete ./level3</code></pre>
+<h2><strong>Googleの権限設定を確認する</strong></h2>
+<p>このコードラボで作成するアクションをテストするには、必要な権限を有効にする必要があります。</p>
+<ol type="1" start="1">
+<li>&#34;Activity Controls&#34; ページに行きます (<a href="https://myaccount.google.com/activitycontrols" target="_blank">https://myaccount.google.com/activitycontrols</a>)。</li>
+<li>サインインされていなければ、あなたのGoogleアカウントでサインインします。</li>
+<li>以下の権限を有効にします。</li>
+</ol>
+<ul>
+<li>Web &amp; App Activity</li>
+<li>Device Information</li>
+<li>Voice &amp; Audio Activity</li>
+</ul>
+<h2><strong>プロジェクトとエージェントをセットアップする</strong></h2>
+<p>もし既に Level 2 コードラボを終えている場合は、このコードラボのための Actions プロジェクトと Dialogflow エージェントのセットアップのために何かを行う必要はありません。フルフィルメントのデプロイを行ってください。</p>
+<p>もし最初から始める場合は、以下を行ってください。</p>
+<ol type="1" start="1">
+<li><a href="https://console.actions.google.com/" target="_blank">Actions console</a> を開きます。</li>
+<li><strong>Add/import project</strong> をクリックします。</li>
+<li>&#34;actions-codelab-3&#34; のように、<strong>Project name</strong> を入力します。この名前は、あなた自身の内部参照として使われることになり、後で外部向けにプロジェクトの名前をセットすることが可能です。</li>
+<li><strong>Create Project</strong> をクリックします。</li>
+<li>カテゴリを選択するのではなく、右上にある <strong>Skip</strong> をクリックします。</li>
+<li>左のナビゲーションから、<strong>Build &gt; Actions</strong> をクリックします。</li>
+<li><strong>Add your first Action</strong> をクリックします。</li>
+<li>Create Action ダイアログ上で、<strong>Custom Intent</strong> を選択して、Dialogflow consoleを起動するために <strong>Build</strong> をクリックします。</li>
+<li>Dialogflow consoleの <strong>Create Agent </strong>ページにて、<strong>Create</strong> をクリックします。</li>
+<li>左のナビゲーションにある <img style="max-width: 20.00px" src="img/3cd7676eaffff05b.png"> (歯車のアイコン)をクリックします。</li>
+<li><strong>Export and Import</strong> をクリックします。</li>
+<li><strong>Restore From Zip</strong> をクリックします。</li>
+<li>あなたが先ほど作成した <code>/level3</code> ディレクトリから、 <code>codelab-level-two.zip</code> ファイルをアップロードします。</li>
+<li><strong>Done</strong> をクリックします。</li>
+</ol>
+<h2><strong>フルフィルメントをデプロイする</strong></h2>
+<p>今、あなたのActionsプロジェクトとDialogflowエージェントの準備が整いましたので、Firebase Functions CLIを使って、あなたのローカルにある index.js ファイルをデプロイするために以下の手順を行ってください。</p>
+<ol type="1" start="1">
+<li>ターミナル内で、あなたがベースファイル群をcloneした場所の <code>/level3/functions</code> に移動します。</li>
+<li>Actions project IDを使って、以下のコマンドを実行します。</li>
+</ol>
+<pre><code>firebase use &lt;PROJECT_ID&gt;</code></pre>
+<aside class="special"><p><strong>Tip:</strong> あなたのActions project IDは、<a href="https://console.actions.google.com/" target="_blank">Actions console</a> 内の <strong>Overview</strong> &gt; <img style="max-width: 20.00px" src="img/3cd7676eaffff05b.png"> (歯車アイコン) &gt; <strong>Project settings</strong> の中で見つけることができます。</p>
+</aside>
+<ol type="1" start="3">
+<li>依存ファイルをインストールするために、ターミナル内で以下のコマンドを実行します。</li>
+</ol>
+<pre><code>npm install</code></pre>
+<ol type="1" start="4">
+<li>FirebaseにあなたのWebhookコードをデプロイするために、ターミナル内で以下のコマンドを実行します。</li>
+</ol>
+<pre><code>firebase deploy</code></pre>
+<aside class="warning"><p>もし &#34;An unexpected error has occurred from the CLI&#34; というようなエラーメッセージが表示された場合は、再び <code>firebase deploy</code> コマンドを実行してみてください。</p>
+</aside>
+<p>数分後に &#34;Deploy complete!&#34; と表示されれば、それはあなたのWebhookをFirebaseにデプロイすることに成功したことを示しています。</p>
+<h2><strong>デプロイメントURLを取得する</strong></h2>
+<p>あなたは、Cloud Function へのURLをDialogflowに提供する必要があります。URLを取得するために、以下のステップに従ってください。</p>
+<ol type="1" start="1">
+<li><a href="https://console.firebase.google.com/" target="_blank">Firebase Console</a> を開きます。</li>
+<li>選択肢のリストから、あなたの Actions project を選択します。</li>
+<li>左のナビゲーションバーから、<strong>Develop &gt; Functions</strong> に移動します。もし &#34;Choose data sharing settings&#34; と指示された場合は、あなたは Do this later をクリックすることで、この選択を無視することができます。</li>
+<li><strong>Dashboard</strong> タブの中で、<strong>Trigger</strong> の下にある URL を伴う &#34;dialogflowFirebaseFulfillment&#34; というエントリを見つけることができるはずです。その URL をコピーします。</li>
+</ol>
+<p><img style="max-width: 602.00px" src="img/58844d447ab09312.png"></p>
+<h2><strong>DialogflowにURLをセットする</strong></h2>
+<p>ここで、あなたはフルフィルメントのためのあなたのWebhookを使うために、Dialogflow agentを更新する必要があります。それを行うために、以下の手順を行ってください。</p>
+<ol type="1" start="1">
+<li><a href="https://console.dialogflow.com/" target="_blank">Dialogflow console</a> を開きます（気になる場合は、Firebase consoleを閉じてしまって構いません）。</li>
+<li>左のナビゲーションから、<strong>Fulfillment</strong> をクリックします。</li>
+<li><strong>Webhook</strong> を有効にします。</li>
+<li>もし何もセットされていなければ、Firebase dashboard からコピーしたURLを貼り付けます。</li>
+<li><strong>Save</strong> をクリックします。</li>
+</ol>
+<h2><strong>プロジェクトが正しくセットアップされたか検証する</strong></h2>
+<p>ここのポイントとして、あなたのアクションを明示的に呼び出すことによって、ユーザは会話を始めることができます。あなたのフルフィルメントは、最初に <strong>actions_intent_PERMISSION</strong> ヘルパーインテントを使用し、その権限を使ってユーザの表示名を取得します。ユーザが会話の中盤になった際に、ユーザは色を提供することにより、&#34;favorite color&#34; インテントをトリガーすることができます。その後、サウンドエフェクトと共に、ユーザはラッキーナンバーを受け取ります。最後に、ユーザは &#34;fakeColor&#34; カスタムエンティティに一致する &#34;favorite fake color&#34; を提供し、応答にて Basic card を受け取ります。</p>
+<aside class="special"><p><strong>Tip: </strong><a href="https://developers.google.com/actions/tools/simulator" target="_blank">Actions simulator guide</a> にて、あなたはActions simulatorの利用に関する最新の情報を見つけることができます。以下に書かれている手順に従った際に何らかの問題が発生した場合は、そのガイドを参照してください。</p>
+</aside>
+<p>Actions simulatorにてあなたのアクションをテストするために、以下を行ってください。</p>
+<ol type="1" start="1">
+<li>Dialogflow consoleの左のナビゲーションにて、<strong>Integrations &gt; Google Assistant</strong> をクリックしてください。</li>
+<li>Auto-preview changes が有効になっていることを確認して、あなたのActions projectを更新するために <strong>Test</strong> をクリックしてください。</li>
+<li>Actions simulatorはあなたのActions projectを読み込みます。あなたのアクションをテストするために、<strong>Input</strong> フィールド内に &#34;Talk to my test app&#34; とタイプして、enter キーを押してください。</li>
+<li>あなたは、&#34;Hi there, to get to know you better, I&#39;ll just need to get your name from Google. Is that ok?&#34; という <a href="https://codelabs.developers.google.com/codelabs/actions-2-ja/index.html#0" target="_blank">Level 2 コードラボ</a> で完了した際の最初の応答を見ることになるはずです。</li>
+<li>&#34;yes&#34; とタイプして、enter キーを押します。</li>
+<li>あなたは、あなたのGoogleアカウントの名前を伴う応答を得るはずです。あなたのフルフィルメントが各入力に対して応答することを確認しながら、会話を続けるために指示に従っていってください。</li>
+</ol>
+<aside class="warning"><p>もしこのような応答が得られない場合は、あなたのFirebaseセットアップにて問題があったかもしれません。この場合、あなたのフルフィルメントをデプロイするための手順を説明したセクションにて、セットアップを繰り返してみてください。</p>
+</aside>
+<p><img style="max-width: 602.00px" src="img/2ba3108aaf692d13.png"></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Model conversational flows for your Action" duration="2">
+        <p>このコードラボを進めていく前に、いろんなActionを構築する際の最初の手順をディスカッションするための時間を少し取ってみましょう。それは、&#34;<em>writing sample dialogs (サンプルダイアログを書く)&#34; </em>、ということです。</p>
+<p>コードを書き始める前に、または会話フローを書く際に、ユーザとアクション間のサンプルインタラクションを書き出す（そして声に出して言う！）ための時間を取ってください。会話が期待通りに進む際の &#34;happy path&#34; に対するユーザとアクションのインタラクション、そして何かうまく行かない際のインタラクション（例えば、何らか期待していない入力をユーザが提供したとき）も、書いてください。サンプルダイアログを書くための方法についてのTipsについて、この<a href="https://developers.googleblog.com/2018/09/sample-dialogs-key-to-creating-great.html" target="_blank">ブログポスト</a>を参照することができます。</p>
+<p>私たちは、（コーディングを開始する前の）開発のライフサイクルの始めにて、サンプルダイアログを書き出そうとすることをお勧めします。そして、その後、あなたのアクションに新しい会話のパスを追加しながら設計を繰り返してください。</p>
+<aside class="special"><p><strong>キーとなる用語:</strong></p>
+<ul>
+<li><strong>会話デザイン:</strong> 会話デザインは、ユーザとアクションの間でのインタラクションを定義します。それは、会話のフロー、ユーザのニーズを考慮する際の根底にあるロジック、ユーザが使っているサーフェス、そして技術的な制約を含みます。</li>
+</ul>
+</aside>
+<p>サンプルダイアログとして、このコードラボでの &#34;happy path&#34; を表現するための例をここで示します。</p>
+<table>
+<tr><td colspan="1" rowspan="1"><p>User:</p>
+</td><td colspan="1" rowspan="1"><p><em>&#34;Talk to my test app.&#34;</em></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Action:</p>
+</td><td colspan="1" rowspan="1"><p><em>&#34;Hi there, to get to know your better, I&#39;ll just need to get your name from Google. Is that ok?&#34;</em></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>User:</p>
+</td><td colspan="1" rowspan="1"><p><em>&#34;Yes.&#34;</em></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Action:</p>
+</td><td colspan="1" rowspan="1"><p><em>&#34;Thanks, &lt;name&gt;. What&#39;s your favorite color?&#34;</em></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>User:</p>
+</td><td colspan="1" rowspan="1"><p><em>&#34;It&#39;s... umm... it&#39;s green!&#34;</em></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Action:</p>
+</td><td colspan="1" rowspan="1"><p><em>&#34;Your lucky number is 5. Would you like to hear some fake colors?&#34;</em></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>User:</p>
+</td><td colspan="1" rowspan="1"><p><em>&#34;Yes.&#34;</em></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Action:</p>
+</td><td colspan="1" rowspan="1"><p><em>&#34;Which color, indigo taco, pink unicorn or blue grey coffee?&#34;</em></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>User:</p>
+</td><td colspan="1" rowspan="1"><p><em>&#34;Pink unicorn.&#34;</em></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Action:</p>
+</td><td colspan="1" rowspan="1"><p><em>&#34;Here&#39;s the color.&#34; &lt;shows image of color&gt;</em></p>
+</td></tr>
+</table>
+<p>これは、このフローの視覚的な表現です。</p>
+<p><img style="max-width: 602.00px" src="img/fd85a2524222c3f8.png"></p>
+<h2><strong>練習: サンプルダイアログを書く</strong></h2>
+<p>短いエクササイズとして、期待していない応答をユーザが行った場合や、ユーザが黙ってしまった場合といった、他のインタラクションをモデリングするためのサンプルダイアログをどう書くかについて、考える時間を取ってみましょう。</p>
+<p>そのようなダイアログの例が以下になります。</p>
+<table>
+<tr><td colspan="1" rowspan="1"><p>User:</p>
+</td><td colspan="1" rowspan="1"><p><em>&#34;Talk to my test app.&#34;</em></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Action:</p>
+</td><td colspan="1" rowspan="1"><p><em>&#34;Hi there, to get to know your better, I&#39;ll just need to get your name from Google. Is that ok?&#34;</em></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>User:</p>
+</td><td colspan="1" rowspan="1"><p><em>&#34;Nope.&#34;</em></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Action:</p>
+</td><td colspan="1" rowspan="1"><p><em>&#34;OK, no worries. What&#39;s your favorite color?&#34;</em></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>User:</p>
+</td><td colspan="1" rowspan="1"><p><em>&#34;It&#39;s... umm... it&#39;s a boat!&#34;</em></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Action:</p>
+</td><td colspan="1" rowspan="1"><p><em>&#34;Sorry, what was that?&#34;</em></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>User:</p>
+</td><td colspan="1" rowspan="1"><p><em>&#34;I mean green.&#34;</em></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Action:</p>
+</td><td colspan="1" rowspan="1"><p><em>&#34;Your lucky number is 5. Would you like to hear some fake colors?&#34;</em></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>User:</p>
+</td><td colspan="1" rowspan="1"><p><em>&#34;Yes.&#34;</em></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Action:</p>
+</td><td colspan="1" rowspan="1"><p><em>&#34;Which color, indigo taco, pink unicorn or blue grey coffee?&#34;</em></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>User:</p>
+</td><td colspan="1" rowspan="1"><p><em>&lt;silence&gt;</em></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Action:</p>
+</td><td colspan="1" rowspan="1"><p><em>&#34;Which color would you like to hear about?&#34;</em></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>User:</p>
+</td><td colspan="1" rowspan="1"><p><em>&#34;Pink unicorn.&#34;</em></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Action:</p>
+</td><td colspan="1" rowspan="1"><p><em>&#34;Here&#39;s the color.&#34; &lt;shows image of color&gt; &#34;Would you like to hear about another fake color?&#34;</em></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>User:</p>
+</td><td colspan="1" rowspan="1"><p><em>&#34;No.&#34;</em></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Action:</p>
+</td><td colspan="1" rowspan="1"><p><em>&#34;Let me know when you want to talk about colors again!&#34;</em></p>
+</td></tr>
+</table>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Store data between conversations" duration="5">
+        <p>同じユーザにて、会話のセッション間で情報を保存しておくことは、あなたのアクションにとってしばしば有効です。あなたのアクションは、ユーザが行うであろう会話をパーソナライズさせるために、ユーザに設定を尋ねて、それを覚えておいて後で使うことができます。例えば、郵便番号に基づいた天気予報をユーザに提供するアクションは、後の会話のために、アクションにその郵便番号を覚えておくようにしたいかどうかをユーザに問い合わせることができるでしょう。</p>
+<p>conv.user.storage オブジェクトは、特定のユーザのために会話を横断してデータを保存するための、Actions on Google Node.js クライアントライブラリによって提供されるデータ構造です。コードラボのこのセクションでは、あなたのアクションにて新しい会話をユーザが始める時はいつでも名前によってユーザに心地よく挨拶をするために、この機能を使います。</p>
+<h2><strong>フルフィルメントを実装する</strong></h2>
+<p><img style="max-width: 24.00px" src="img/a3c16fc17be25f6c.png"> エディタで <code>index.js</code> ファイルを開き、<strong><code>conv.data</code></strong> の全てのインスタンスを <strong><code>conv.user.storage</code></strong> に置き換えます。</p>
+<p><img style="max-width: 24.00px" src="img/a3c16fc17be25f6c.png"> 以下のコードに置き換えることによって <code>conv.user.storage</code> オブジェクトを使うために、あなたの Default Welcome Intent ハンドラを更新します。</p>
+<h3><strong>index.js</strong></h3>
+<pre><code>// Handle the Dialogflow intent named &#39;Default Welcome Intent&#39;.
+app.intent(&#39;Default Welcome Intent&#39;, (conv) =&gt; {
+ // Asks the user&#39;s permission to know their name, for personalization.
+ conv.ask(new Permission({
+   context: &#39;Hi there, to get to know you better&#39;,
+   permissions: &#39;NAME&#39;,
+ }));
+});</code></pre>
+<p>上記を以下に変更します。</p>
+<h3><strong>index.js</strong></h3>
+<pre><code>// Handle the Dialogflow intent named &#39;Default Welcome Intent&#39;.
+app.intent(&#39;Default Welcome Intent&#39;, (conv) =&gt; {
+ const name = conv.user.storage.userName;
+ if (!name) {
+   // Asks the user&#39;s permission to know their name, for personalization.
+   conv.ask(new Permission({
+     context: &#39;Hi there, to get to know you better&#39;,
+     permissions: &#39;NAME&#39;,
+   }));
+ } else {
+   conv.ask(`Hi again, ${name}. What&#39;s your favorite color?`);
+ }
+});</code></pre>
+<p>Level 2 コードラボにて、同一の会話でのやり取りの間で情報を保存できるようにするために、私たちは <code>conv.data</code> オブジェクトを導入しました。上記のコードスニペットで更新されることで、代わりに会話間でユーザの名前を保存するための <code>conv.user.storage</code> オブジェクトを使います。ユーザが以前ユーザの名前にアクセスするための権限をあなたのアクションに許可した場合は、挨拶のメッセージにユーザの名前が含まれることでしょう。</p>
+<h2><strong>会話データの保存をテストする</strong></h2>
+<p>ターミナル内で、Firebaseに更新されたWebhookコードをデプロイするために、以下のコマンドを実行します。</p>
+<pre><code>firebase deploy</code></pre>
+<aside class="special"><p><strong>Tip: </strong><a href="https://developers.google.com/actions/tools/simulator" target="_blank">Actions simulator guide</a> にて、あなたはActions simulatorの利用に関する最新の情報を見つけることができます。以下に書かれている手順に従った際に何らかの問題が発生した場合は、そのガイドを参照してください。</p>
+</aside>
+<p>Actions simulatorにてあなたのアクションをテストするために、以下を行ってください。</p>
+<ol type="1" start="1">
+<li>Actions consoleにて、<strong>Test &gt; Simulator</strong> に移動します。</li>
+<li><strong>Input</strong> フィールド内にて &#34;Talk to my test app&#34; とタイプして enter キーを押します。</li>
+<li>&#34;Yes&#34; とタイプして、enter キーを押します。</li>
+<li>&#34;Cancel&#34; とタイプして、enter キーを押します。</li>
+<li>Input フィールド内にて再び &#34;Talk to my test app&#34; とタイプして enter キーを押します。これにより、別の会話を開始します。</li>
+</ol>
+<p>この2番目の会話を始めた際に、あなたのアクションは初回にあなたがパーミッションを与えたあなたの名前を覚えているはずです。</p>
+<p><img style="max-width: 497.00px" src="img/de5cf90e4b1182ba.png"></p>
+<aside class="special"><p><strong>Tip:</strong> もしテスト中に user storage をクリアしたい場合は、あなたは Default Welcome Intent のコールバック関数の最初の行にて、以下のコードを追加することによってクリアすることが可能です。</p>
+<p><code>conv.user.storage = {};</code></p>
+</aside>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Build custom reprompts" duration="10">
+        <p>スマートスピーカーや他の画面を持たないサーフェスでは、デバイスがユーザの応答を待っているかどうかを明確で視覚的に表示する機能を持たない可能性があります。ユーザは、あなたのアクションが応答することを待っていると認識しないかもしれません。従って、ユーザに応答が必要であることを気づかせるための <strong>no-input</strong> イベントハンドリングを実装することは、重要な設計プラクティスです。</p>
+<aside class="special"><p><strong>キーとなる用語:</strong></p>
+<ul>
+<li><strong>no-input イベント:</strong> 開発者によって定義された回数 reprompts が行われた後にユーザが入力を提供しなかった場合に、Actions on GoogleがDialogflowに送信する特別なイベントです。Actions on Googleでは、これは <code>actions.intent.NO_INPUT</code> で表現されます。もしDialogflowを使っている場合は、これは <code>actions_intent_NO_INPUT</code> イベントとして表現されます。</li>
+</ul>
+</aside>
+<h2><strong>Dialogflowをセットアップする</strong></h2>
+<ol type="1" start="1">
+<li>no-input イベントを処理するための新しいインテントをセットアップします。新しいインテントを作成するために、Dialogflow console内の左のナビゲーションにある <strong>Intents</strong> の隣の <strong>+</strong> ボタンをクリックします。</li>
+<li>自由にこの新しいインテントに名前を付けることができます。私たちの例では、<strong>actions_intent_NO_INPUT</strong> とそれに名前を付けました。</li>
+<li><strong>Events</strong> にて、&#34;actions_intent_NO_INPUT&#34; と呼ばれる新しいイベントを追加します。</li>
+<li>Webhook フルフィルメントのトグルを ON にして、<strong>Save</strong> をクリックします。</li>
+</ol>
+<p><img style="max-width: 602.00px" src="img/4e3d1375321c18a1.png"></p>
+<h2><strong>フルフィルメントを実装する</strong></h2>
+<p><img style="max-width: 24.00px" src="img/a3c16fc17be25f6c.png"> エディタで index.js ファイルを開き、以下のコードを追加します。</p>
+<h3><strong>index.js</strong></h3>
+<pre><code>// Handle the Dialogflow NO_INPUT intent.
+// Triggered when the user doesn&#39;t provide input to the Action
+app.intent(&#39;actions_intent_NO_INPUT&#39;, (conv) =&gt; {
+  // Use the number of reprompts to vary response
+  const repromptCount = parseInt(conv.arguments.get(&#39;REPROMPT_COUNT&#39;));
+  if (repromptCount === 0) {
+    conv.ask(&#39;Which color would you like to hear about?&#39;);
+  } else if (repromptCount === 1) {
+    conv.ask(`Please say the name of a color.`);
+  } else if (conv.arguments.get(&#39;IS_FINAL_REPROMPT&#39;)) {
+    conv.close(`Sorry we&#39;re having trouble. Let&#39;s ` +
+      `try this again later. Goodbye.`);
+  }
+});</code></pre>
+<p>conversation オブジェクトの REPROMPT_COUNT という名前のプロパティを活用していることに注意してください。この値は、私たちにユーザがどのくらい多く指示したかを知らせてくれます。これにより、毎回私たちのメッセージを変更することができます。コードスニペットでは、最大の reprompt 回数を2にセットしていて、それが会話を終えるポイントになります。これはベストプラクティスであり、3回以上のユーザへの reprompt を行うことは、不満や会話の停止を増加させます。</p>
+<aside class="special"><p><strong>Design tip:</strong> ユーザプロンプトは会話を前に進める上で重要な要素であるため、あなたのアクションに対してユーザプロンプトを注意深く書くようにすべきです。プロンプトを書くためのベストプラクティスについてより詳しく学ぶために、<a href="https://designguidelines.withgoogle.com/conversation/conversational-components/overview.html#" target="_blank">conversation design guide</a> をご覧ください。</p>
+</aside>
+<h2><strong>カスタム reprompts をテストする</strong></h2>
+<p>ターミナル内で、Firebaseに更新されたWebhookコードをデプロイするために、以下のコマンドを実行します。</p>
+<pre><code>firebase deploy</code></pre>
+<aside class="special"><p><strong>Tip: </strong><a href="https://developers.google.com/actions/tools/simulator" target="_blank">Actions simulator guide</a> にて、あなたはActions simulatorの利用に関する最新の情報を見つけることができます。以下に書かれている手順に従った際に何らかの問題が発生した場合は、そのガイドを参照してください。</p>
+</aside>
+<p>Actions simulatorにてあなたのアクションをテストするために、以下を行ってください。</p>
+<ol type="1" start="1">
+<li>Actions consoleにて、<strong>Test &gt; Simulator</strong> に移動します。</li>
+<li>継続されている会話があれば終了させます。そして、<strong>Surface</strong> の中で、<strong>Speaker</strong> アイコンを選択します。</li>
+</ol>
+<p><img style="max-width: 602.00px" src="img/874eede98954071d.png"></p>
+<ol type="1" start="3">
+<li><strong>Input</strong> フィールド内に &#34;Talk to my test app&#34; とタイプして enter キーを押します。もしあなたのアクションがあなたの名前を覚えていない場合は、&#34;yes&#34; とタイプして enter キーを押します。</li>
+<li>応答なしをシミュレートするために、<strong>Input</strong> フィールドの右にある <strong>No Input </strong><img style="max-width: 30.00px" src="img/78188fbbf5ad7c2d.png"> アイコンをクリックします。</li>
+</ol>
+<p>あなたのアクションは、色を入力する代わりに入力なしをシミュレートする度に、カスタム reprompt メッセージで応答するはずです。最終的に、3回目の reprompt で会話が終わります。</p>
+<p><img style="max-width: 418.00px" src="img/8d0dfe79e76e72b8.png"></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Add a custom exit" duration="5">
+        <p>あなたのアクションは、ユーザが全ての道を通じて会話のパスに従っていなかったとしても、ユーザが会話を迅速に終えることができるようにしておくべきです。デフォルトとして、ユーザがいくつかのキーワード（<em>&#34;exit&#34;, &#34;cancel&#34;, &#34;stop&#34;, &#34;nevermind&#34;, &#34;goodbye&#34;</em>）の一つを発言した時にはいつでも、会話を終了して earcon （終了音）を再生します。</p>
+<p>あなたは、Dialogflowにて actions_intent_CANCEL イベントを登録し、カスタムレスポンスを定義することで、この振る舞いを変更することができます。</p>
+<aside class="special"><p><strong>キーとなる用語:</strong></p>
+<ul>
+<li><strong>Cancel インテント:</strong> あなたのアクションに対して、フルフィルメント内でいくつかのクリーンアップのためのコードを実行し、ユーザに Final response を送信することを行えるようにするインテントです。Dialogflowにおいて、これは <code>actions_intent_CANCEL</code> イベントによってトリガーされます。</li>
+<li><strong>Final response:</strong> 会話が終わる前のあなたのアクションからの最後のメッセージです。あなたの Final response は、<code>textToSpeech</code> および <code>displayText</code> 値にて、60文字を上限とする一つの <a href="https://developers.google.com/actions/assistant/responses#simple_responses" target="_blank">simple response</a> でなければなりません。</li>
+</ul>
+</aside>
+<p>このセクションでは、Dialogflowにげ新しい Cancel インテントを作成して、適切な final response メッセージを追加します。</p>
+<h2><strong>Dialogflowをセットアップする</strong></h2>
+<ol type="1" start="1">
+<li>ユーザが会話を終えることを処理するための新しいインテントをセットアップします。Dialogflow consoleにて、新しいインテントを作成するために、左のナビゲーションの <strong>Intents</strong> の隣にある <strong>+</strong> ボタンをクリックします。</li>
+<li>自由にこの新しいインテントに名前を付けることができます。私たちの例では、<code>actions_intent_CANCEL</code> とそれに名前を付けました。</li>
+<li><strong>Events</strong> にて、<code>actions_intent_CANCEL</code> と呼ばれる新しいイベントを追加します。</li>
+<li><strong>Responses</strong> にて、&#34;Let me know when you want to talk about colors again!&#34; というような <strong>Text response</strong> を追加します。良いデザインプラクティスとして、終了時のテキスト応答は60文字よりも短くすることに注意してください。</li>
+</ol>
+<aside class="special"><p><strong>Design tip:</strong> あなたのアクションは、社会的な知性を示す方法で会話を終了すべきです。会話を終了するためのベストプラクティスについてより詳しく学ぶために、<a href="https://designguidelines.withgoogle.com/conversation/conversational-components/overview.html#" target="_blank">conversation design guide</a> をご覧ください。</p>
+</aside>
+<ol type="1" start="5">
+<li><strong>Add Responses</strong> の下にある <strong>Set this intent as end of conversation</strong> スイッチを ON に変更します。</li>
+<li><strong>Save</strong> をクリックします。</li>
+</ol>
+<p><img style="max-width: 602.00px" src="img/612d58658bf133ca.png"></p>
+<h2><strong>会話の終了のカスタマイズをテストする</strong></h2>
+<aside class="special"><p><strong>Tip: </strong><a href="https://developers.google.com/actions/tools/simulator" target="_blank">Actions simulator guide</a> にて、あなたはActions simulatorの利用に関する最新の情報を見つけることができます。以下に書かれている手順に従った際に何らかの問題が発生した場合は、そのガイドを参照してください。</p>
+</aside>
+<p>Actions simulator にて会話の終了のプロンプトをテストするために、以下の手順に従います。</p>
+<ol type="1" start="1">
+<li>Actions consoleにて、<strong>Text &gt; Simulator</strong> に移動します。</li>
+<li><strong>Input</strong> フィールド内に &#34;Talk to my test app&#34; とタイプして enter キーを押します。もしあなたのアクションがあなたの名前を覚えていない場合は、&#34;yes&#34; とタイプします。</li>
+<li>&#34;Goodbye&#34; とタイプして、enter キーを押します。</li>
+</ol>
+<p>あなたのアクションは、あなたのカスタム終了プロンプトで応答して会話を終えるはずです。</p>
+<p><img style="max-width: 562.00px" src="img/ffc829e9f3097f30.png"></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Add visual selection with a carousel" duration="10">
+        <p>コードラボのこのセクションでは、画面出力を持つデバイス上で偽色（fake color）の選択肢をユーザに見せて選択する機能を追加することで、あなたのアクションを改善します。</p>
+<h2><strong>会話の終了のカスタマイズをテストする</strong></h2>
+<p>会話の体験がマルチモーダルになるように設計することが重要です。それは、声やテキストだけでなく、デバイスがサポートする他のインタラクションモード（例えばタッチスクリーン）を介してユーザが会話に参加できることを意味しています。</p>
+<p>私たちは通常、会話を設計することと、声のみの体験のためのサンプルダイアログの書き出しを始めます。その後、私たちは、理解を改善するための視覚を追加することを含む、<a href="https://designguidelines.withgoogle.com/conversation/conversation-design-process/scale-your-design.html" target="_blank">マルチモーダルな体験を設計</a>します。</p>
+<p>画面出力を持つデバイスのために、Actions on Googleプラットフォームはいくつかの<a href="https://designguidelines.withgoogle.com/conversation/visual-components/overview.html#overview-types-of-visual-components" target="_blank">種類の視覚的なコンポーネント</a>を提供します。それらを使って、ユーザに情報の詳細を提供することをあなたのアクションに選択的に統合することができます。</p>
+<p>マルチモーダルサポートの追加のためのある共通的なユースケースは、会話の中でいくつかの利用可能な選択肢をユーザに選択させることがユーザに必要となる時です。</p>
+<aside class="special"><p><strong>Design tip:</strong> ユーザが画面出力を持つデバイスにいる場合は、ユーザが選択を容易にできるように、利用可能な選択肢を視覚的に見せることが望ましいでしょう。</p>
+</aside>
+<p>私たちの会話の設計において、フロー内でユーザが偽色を選択することが求められる決定ポイントがあります。私たちは、視覚的なコンポーネントを追加することで、このインタラクションを改善します。</p>
+<p>視覚的な選択を表現するための良い候補は、<a href="https://designguidelines.withgoogle.com/conversation/visual-components/carousel.html#" target="_blank">カルーセル</a>です。このコンポーネントは、ユーザが選ぶことになる項目の選択をあなたのアクションに行わせます。各項目は、画像によって簡単に識別可能です。</p>
+<h2><strong>Dialogflowをセットアップする</strong></h2>
+<p>カルーセルを追加するために、Dialogflow consoleにて以下の変更を行ってください。</p>
+<h3><strong>follow-upインテントのWebhook呼び出しを有効にする</strong></h3>
+<p>あなたの <code>favorite color - yes</code> follow-upインテントが一致した際には、ユーザは視覚的な要素であるカルーセルの提供を受けます。ベストプラクティスとして、視覚的な要素を持つコンポーネントを提示する前に、ユーザの現在のデバイスが画面を持つかどうかチェックすべきです。<code>favorite color -yes</code> follow-upインテントにて、このチェックが実行されるように更新します。</p>
+<ol type="1" start="1">
+<li><a href="https://console.dialogflow.com/" target="_blank">Dialogflow console</a>の左のナビゲーションにおいて、<strong>Intents</strong> をクリックします。</li>
+<li><code>favorite color</code> インテントの隣にある矢印をクリックして、<code>favorite color - yes</code> を選択します。</li>
+<li>ページの下部の <strong>Fulfillment</strong> セクション内で、 <strong>Enable webhook call for this intent</strong> オプションを有効にします。</li>
+</ol>
+<p><img style="max-width: 602.00px" src="img/8bca382020105a41.png"></p>
+<ol type="1" start="4">
+<li>ページ上部の <strong>Save</strong> ボタンをクリックします。</li>
+</ol>
+<h3><strong>視覚的な要素を処理するためにインテントを更新する</strong></h3>
+<p>あなたは、ユーザの選択を処理するために、Dialogflow console内で <code>favorite fake color</code> インテントを更新する必要があります。それを行うために、以下を行ってください。</p>
+<ol type="1" start="1">
+<li><a href="https://console.dialogflow.com/" target="_blank">Dialogflow console</a>の左のナビゲーションにて、 <strong>Intents</strong> をクリックし、 <code>favorite fake color</code> インテントを選択します。</li>
+<li><strong>Events</strong> にて、 <code>actions_intent_OPTION</code> を追加します。Dialogflowは、ユーザがカルーセルから選択肢を選んだ際のこの特定のイベントを見つけます。</li>
+</ol>
+<p><img style="max-width: 602.00px" src="img/a135933edca8fae4.png"></p>
+<ol type="1" start="3">
+<li>ページ上部の <strong>Save</strong> ボタンをクリックします。</li>
+</ol>
+<h2><strong>フルフィルメントを実装する</strong></h2>
+<p>あなたのWebhookでのフルフィルメントを実装するために、以下の手順を行ってください。</p>
+<h3><strong>依存ライブラリを読み込む</strong></h3>
+<p>マルチモーダルな会話体験をサポートするために、あなたはデバイスのサーフェス能力に基づく価値のある応答を提供する必要があります。あなたのフルフィルメント内で <code>conv.screen</code> プロパティをチェックすることでこれを行います。</p>
+<p><img style="max-width: 24.00px" src="img/a3c16fc17be25f6c.png"> <code>index.js</code> ファイルにて、<code>require()</code> 関数を更新し、<code>actions-on-google</code> パッケージから <code>Carousel</code> および <code>Image</code> パッケージを追加します。そして、あなたの imports は以下のようになります。</p>
+<h3><strong>index.js</strong></h3>
+<pre><code>// Import the Dialogflow module and response creation dependencies
+// from the Actions on Google client library.
+const {
+  dialogflow,
+  BasicCard,
+  Permission,
+  Suggestions,
+  Carousel,
+  Image,
+} = require(&#39;actions-on-google&#39;);</code></pre>
+<h3><strong>カルーセルを構築する</strong></h3>
+<p>次に、カルーセルを構築するために、 <code>fakeColorCarousel()</code> 関数を定義します。</p>
+<p><img style="max-width: 24.00px" src="img/a3c16fc17be25f6c.png"> <code>index.js</code> ファイルにて、以下のコードを使って <code>fakeColorCarousel()</code> 関数を追加します。</p>
+<h3><strong>index.js</strong></h3>
+<pre><code>// In the case the user is interacting with the Action on a screened device
+// The Fake Color Carousel will display a carousel of color cards
+const fakeColorCarousel = () =&gt; {
+  const carousel = new Carousel({
+   items: {
+     &#39;indigo taco&#39;: {
+       title: &#39;Indigo Taco&#39;,
+       synonyms: [&#39;indigo&#39;, &#39;taco&#39;],
+       image: new Image({
+         url: &#39;https://storage.googleapis.com/material-design/publish/material_v_12/assets/0BxFyKV4eeNjDN1JRbF9ZMHZsa1k/style-color-uiapplication-palette1.png&#39;,
+         alt: &#39;Indigo Taco Color&#39;,
+       }),
+     },
+     &#39;pink unicorn&#39;: {
+       title: &#39;Pink Unicorn&#39;,
+       synonyms: [&#39;pink&#39;, &#39;unicorn&#39;],
+       image: new Image({
+         url: &#39;https://storage.googleapis.com/material-design/publish/material_v_12/assets/0BxFyKV4eeNjDbFVfTXpoaEE5Vzg/style-color-uiapplication-palette2.png&#39;,
+         alt: &#39;Pink Unicorn Color&#39;,
+       }),
+     },
+     &#39;blue grey coffee&#39;: {
+       title: &#39;Blue Grey Coffee&#39;,
+       synonyms: [&#39;blue&#39;, &#39;grey&#39;, &#39;coffee&#39;],
+       image: new Image({
+         url: &#39;https://storage.googleapis.com/material-design/publish/material_v_12/assets/0BxFyKV4eeNjDZUdpeURtaTUwLUk/style-color-colorsystem-gray-secondary-161116.png&#39;,
+         alt: &#39;Blue Grey Coffee Color&#39;,
+       }),
+     },
+ }});
+ return carousel;
+};</code></pre>
+<p>カルーセルは <code>Items</code> オブジェクトを使って構築されることに注意してください。そのオブジェクトは、 <code>titles</code> や <code>Images</code> を含むいくつかのプロパティを持っています。 <code>Image</code> 型は、ユーザが選択をクリックした際に開く url を含むだけでなく、アクセシビリティのために代替テキストも含みます。</p>
+<p>ユーザの選択がどのカルーセルカードなのかを識別するために、あなたは &#34;indigo taco&#34;, &#34;pink unicorn&#34;, &#34;blue gey coffee&#34; といった名前で、<code>Items</code> オブジェクトのキーを使うことになるでしょう。</p>
+<h3><strong>&#34;favorite fake color - yes&#34; のためのインテントハンドラを追加する</strong></h3>
+<p>次に、 <code>conv.screen</code> プロパティが <code>true</code> かどうかをチェックするための <code>favorite color - yes</code> follow-up インテントのためのハンドラを追加する必要があります。もしその場合、これはデバイスが画面を持つことを示します。その後、あなたは <code>fakeColorCarousel()</code> を引数として渡して <code>ask()</code> を呼び出すことで、ユーザにカルーセルから偽色を選択することを尋ねる応答を送ります。</p>
+<p><img style="max-width: 24.00px" src="img/a3c16fc17be25f6c.png"> <code>index.js</code> ファイルにて、あなたのフルフィルメントに以下のコードを追加することで、現在のサーフェスに画面があるかどうかのチェックを追加します。</p>
+<h3><strong>index.js</strong></h3>
+<pre><code>// Handle the Dialogflow intent named &#39;favorite color - yes&#39;
+app.intent(&#39;favorite color - yes&#39;, (conv) =&gt; {
+ conv.ask(&#39;Which color, indigo taco, pink unicorn or blue grey coffee?&#39;);
+ // If the user is using a screened device, display the carousel
+ if (conv.screen) return conv.ask(fakeColorCarousel());
+});</code></pre>
+<h3><strong>画面のないデバイスをサポートする</strong></h3>
+<p>もしサーフェス能力のチェックが <code>false</code> を返した場合、あなたのユーザは画面を持たないデバイスであなたのアクションとインタラクションしています。あなたは、あなたのアクションにて可能な限り多くの異なるユーザをサポートすべきですので、視覚的な要素を表示する代わりに、色の説明を読む代替の応答をここで追加しましょう。</p>
+<p><img style="max-width: 24.00px" src="img/a3c16fc17be25f6c.png"> index.js ファイルにて、以下のコードに置き換えることで、サーフェス能力のチェックとフォールバックを追加します。</p>
+<h3><strong>index.js</strong></h3>
+<pre><code>// Handle the Dialogflow intent named &#39;favorite fake color&#39;.
+// The intent collects a parameter named &#39;fakeColor&#39;.
+app.intent(&#39;favorite fake color&#39;, (conv, {fakeColor}) =&gt; {
+ // Present user with the corresponding basic card and end the conversation.
+ conv.close(`Here&#39;s the color`, new BasicCard(colorMap[fakeColor]));
+});</code></pre>
+<p>これを以下に置き換えます。</p>
+<h3><strong>index.js</strong></h3>
+<pre><code>// Handle the Dialogflow intent named &#39;favorite fake color&#39;.
+// The intent collects a parameter named &#39;fakeColor&#39;.
+app.intent(&#39;favorite fake color&#39;, (conv, {fakeColor}) =&gt; {
+ fakeColor = conv.arguments.get(&#39;OPTION&#39;) || fakeColor;
+ // Present user with the corresponding basic card and end the conversation.
+ conv.ask(`Here&#39;s the color.`, new BasicCard(colorMap[fakeColor]));
+ if (!conv.screen) {
+   conv.ask(colorMap[fakeColor].text);
+ }
+});</code></pre>
+<h2><strong>カルーセル応答をテストする</strong></h2>
+<p>ターミナル内で、Firebaseに更新されたWebhookコードをデプロイするために、以下のコマンドを実行します。</p>
+<pre><code>firebase deploy</code></pre>
+<aside class="special"><p><strong>Tip: </strong><a href="https://developers.google.com/actions/tools/simulator" target="_blank">Actions simulator guide</a> にて、あなたはActions simulatorの利用に関する最新の情報を見つけることができます。以下に書かれている手順に従った際に何らかの問題が発生した場合は、そのガイドを参照してください。</p>
+</aside>
+<ol type="1" start="1">
+<li>Actions consoleにて、<strong>Test &gt; Simulator</strong> に移動します。</li>
+<li><strong>Surface</strong> の中で、<strong>Smart Display</strong> アイコンを選択します。</li>
+</ol>
+<p><img style="max-width: 129.00px" src="img/9f3cdf4619dc048d.png"></p>
+<ol type="1" start="3">
+<li><strong>Input</strong> フィールド内に &#34;Talk to my test app&#34; とタイプして enter キーを押します。もしあなたのアクションがあなたの名前を覚えていない場合は、&#34;yes&#34; とタイプして enter キーを押します。</li>
+<li>&#34;blue&#34; とタイプして enter キーを押します。</li>
+<li>&#34;sure&#34; とタイプして enter キーを押します。</li>
+</ol>
+<p>あなたは、右の Display タブの中で、カルーセル応答の表示を見るはずです。</p>
+<p><img style="max-width: 602.00px" src="img/dc95bc73684b735e.png"></p>
+<p>あなたは、色についてのより詳細な情報を持つカードを得るために、シミュレータ内で選択肢をタイプすることができますし、カルーセルの選択肢の一つをクリックすることができます。</p>
+<p><img style="max-width: 602.00px" src="img/821309ef33d89fe4.png"></p>
+<aside class="warning"><p>このポイントでは、ユーザに応答するためのプロンプトなしで、あなたのアクションはマイクをオープンにしたままです。プロンプトなしでマイクをオープンのままにすることは、悪いデザインプラクティスとして考慮され、そしてアクションの公開申請がリジェクトされる一般的な理由となります。しかし、心配しないでください！このコードラボの次のセクションにて、いくつかの follow-up プロンプトを追加します。</p>
+</aside>
+<h2><strong>視覚的ではない応答をテストする</strong></h2>
+<p>あなたは、画面を表示する能力を持たないデバイス上においてもどのように会話がされるかを確認するために、あなたの応答をテストすべきです。音声のみのサーフェスであなたの応答をテストするために、以下の手順を行います。</p>
+<ol type="1" start="1">
+<li>前の会話を終了するために、シミュレータの左上にある <strong>X</strong> を押します。</li>
+<li><strong>Surface</strong> 内で、<strong>Speaker</strong> アイコンを選択します。</li>
+</ol>
+<p><img style="max-width: 122.00px" src="img/489afc5b2552d759.png"></p>
+<ol type="1" start="3">
+<li><strong>Input</strong> フィールド内で &#34;Talk to my test app&#34; とタイプして enter キーを押します。もしアクションがあなたの名前を覚えていなかった場合は、&#34;yes&#34; とタイプして enter キーを押します。</li>
+<li>&#34;blue&#34; とタイプして enter キーを押します。</li>
+<li>&#34;sure&#34; とタイプして enter キーを押します。</li>
+<li>&#34;indigo taco&#34; とタイプして enter キーを押します。</li>
+</ol>
+<p>あなたが選択した色に応じた説明が、音声での応答として返されるはずです。</p>
+<p><img style="max-width: 440.00px" src="img/8b1a55b18d1aeac5.png"></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Add follow-up prompts" duration="10">
+        <p>あなたのアクションは、会話の最後に、複数の選択肢がある質問（&#34;Which color, indigo taco, pink unicorn or blue grey coffee?&#34;）をユーザに提示します。ユーザは、あなたのアクションを際呼び出しして決定ポイントまで会話を進めることなく、ユーザが選択可能な他の選択肢を得ることもできるべきです。</p>
+<h2><strong>会話体験を設計する</strong></h2>
+<p>コードラボのこのセクションでは、他の色を選択するか、そのまま会話を終えるかをユーザに選ばせるためのプロンプトを作成します。</p>
+<p>ここに、ユーザがもう一つの偽色を選択したい場合のインタラクションシナリオのサンプルダイアログ例があります。</p>
+<table>
+<tr><td colspan="1" rowspan="1"><p>Action:</p>
+</td><td colspan="1" rowspan="1"><p><em>&#34;Would you like to hear some fake colors?&#34;</em></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>User:</p>
+</td><td colspan="1" rowspan="1"><p><em>&#34;Yes&#34;</em></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Action:</p>
+</td><td colspan="1" rowspan="1"><p><em>&#34;Which color, indigo taco, pink unicorn or blue grey coffee?&#34;</em></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>User:</p>
+</td><td colspan="1" rowspan="1"><p><em>I like pink unicorn.&#34;</em></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Action:</p>
+</td><td colspan="1" rowspan="1"><p><em>&#34;Here&#39;s the color. Do you want to hear about another fake color?&#34;</em></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>User:</p>
+</td><td colspan="1" rowspan="1"><p><em>&#34;Yes please.&#34;</em></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Action:</p>
+</td><td colspan="1" rowspan="1"><p><em>&#34;Which color, indigo taco, pink unicorn or blue grey coffee?&#34;</em></p>
+</td></tr>
+</table>
+<p>そして、以下はユーザがもう一つの偽色の選択を拒否した場合のインタラクションシナリオのサンプルダイアログ例があります。</p>
+<table>
+<tr><td colspan="1" rowspan="1"><p>Action:</p>
+</td><td colspan="1" rowspan="1"><p><em>&#34;Would you like to hear some fake colors?&#34;</em></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>User:</p>
+</td><td colspan="1" rowspan="1"><p><em>&#34;Yes&#34;</em></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Action:</p>
+</td><td colspan="1" rowspan="1"><p><em>&#34;Which color, indigo taco, pink unicorn or blue grey coffee?&#34;</em></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>User:</p>
+</td><td colspan="1" rowspan="1"><p><em>I like pink unicorn.&#34;</em></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Action:</p>
+</td><td colspan="1" rowspan="1"><p><em>&#34;Here&#39;s the color. Do you want to hear about another fake color?&#34;</em></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>User:</p>
+</td><td colspan="1" rowspan="1"><p><em>&#34;No thanks.&#34;</em></p>
+</td></tr>
+<tr><td colspan="1" rowspan="1"><p>Action:</p>
+</td><td colspan="1" rowspan="1"><p><em>&#34;Goodbye, see you next time!&#34;</em></p>
+</td></tr>
+</table>
+<p>以下は、これらのサンプルダイアログを視覚的に表現したものです。</p>
+<p><img style="max-width: 602.00px" src="img/3ac48a92646cd08f.png"></p>
+<p>このフローを実装するために、特定のインテントの後にDialogflowがユーザの応答に基づいて一致させる <a href="https://dialogflow.com/docs/contexts/follow-up-intents" target="_blank">follow-up intent</a> を使います。私たちのアクションにおいては、以下の方法で follow-up インテントを適用します。</p>
+<ul>
+<li>別のお気に入りの色を聞きたいかどうか尋ねた後にユーザが &#34;No&#34; と言った場合は、最後のメッセージを送信し会話を終了する follow-up インテントをトリガーします。</li>
+<li>同じプロンプトにてユーザが &#34;Yes&#34; と言った場合は、別のお気に入りの指定をユーザにプロンプトする follow-up インテントをトリガーします。</li>
+</ul>
+<p>follow-up インテントを使う時は、あなたのアクションは会話のコンテキスト（<em>conversational context</em>）を気にしておく必要があります。つまり、会話の中でのある時点までの状況を理解する必要があります。ユーザが主体を変更しない限り、私たちは会話のスレッドが継続していると見なすことができます。従って、あなたのアクションは、曖昧さを解決し、現在の発話をより理解するために、ユーザの以前の発言を使う可能性が高いです。例えば、花を注文するアクションは、ユーザからの &#34;What about a half dozen?&#34; という問い合わせについて、ユーザの前の発言への follow-up と理解すべきであり、それは &#34;How much does a bouquet of 6 roses cost?&#34; と解釈すべきです。</p>
+<aside class="special"><p><strong>Design tip:</strong> 比較的大きな会話コンテキストにおいて、あなたのアクションがユーザの発話を解釈できなかった場合に、フォールバックを提供してください。どのようにカスタムフォールバックを定義可能かの例として、Level 2 コードラボの<a href="https://codelabs.developers.google.com/codelabs/actions-2-ja/index.html#3" target="_blank">このセクション</a>を参照ください。</p>
+</aside>
+<h2><strong>Dialogflowをセットアップする</strong></h2>
+<p>追加のプロンプトを使ってカルーセルの選択を follow-up するために、以下を行ってください。</p>
+<ol type="1" start="1">
+<li><a href="https://console.dialogflow.com/" target="_blank">Dialogflow console</a>の左のナビゲーションにて、<strong>Intents</strong> をクリックします。</li>
+<li>カーソルを favorite fake color の上にホバーさせ、その後 <strong>Add follow-up intent</strong> をクリックします。これを2回行いますが、一度目は <strong>yes</strong> を、二度目は <strong>no</strong> を選択してください。</li>
+</ol>
+<p><img style="max-width: 275.00px" src="img/d6913c84c79f50c1.png"></p>
+<aside class="special"><p><strong>Tip:</strong> 両方の follow-up インテントが、<strong>favorite fake color</strong> インテントを親としてセットしていることを確認してください。誤って最初のインテントの follow-up として作成しがちです。</p>
+</aside>
+<p><strong>favorite fake color - no</strong> インテントをクリックして、以下を行ってください。</p>
+<ol type="1" start="1">
+<li><strong>Responses</strong> の中で、<strong>Text response</strong> として &#34;Goodbye, see you next time!&#34; を追加します。</li>
+<li><strong>Set this intent as end of conversation</strong> をONにします。</li>
+<li><strong>Save</strong> をクリックします。</li>
+</ol>
+<p><img style="max-width: 602.00px" src="img/f95fcec9eb206cbc.png"></p>
+<p>左のナビゲーションにて <strong>Intents</strong> をクリックし、そして <strong>favorite fake color - yes</strong> インテントをクリックします。その後、以下を行います。</p>
+<ol type="1" start="1">
+<li><strong>Fulfillment</strong> の中で、 <strong>Enable webhook call for this intent</strong> をONにします。</li>
+<li><strong>Save</strong> をクリックします。</li>
+</ol>
+<p><img style="max-width: 602.00px" src="img/a54adeb829cef2b1.png"></p>
+<h2><strong>フルフィルメントを実装する</strong></h2>
+<p>次に、 <code>favorite fake color - yes</code> follow-up インテントのためのハンドラを追加する必要があります。</p>
+<p><img style="max-width: 24.00px" src="img/a3c16fc17be25f6c.png"> <code>index.js</code> ファイルの中で、以下のコードを置き換えます。</p>
+<h3><strong>index.js</strong></h3>
+<pre><code>// Handle the Dialogflow intent named &#39;favorite color - yes&#39;
+app.intent(&#39;favorite color - yes&#39;, (conv) =&gt; {
+ conv.ask(&#39;Which color, indigo taco, pink unicorn or blue grey coffee?&#39;);
+ // If the user is using a screened device, display the carousel
+ if (conv.screen) return conv.ask(fakeColorCarousel());
+});</code></pre>
+<p>これを以下に置き換えます。</p>
+<h3><strong>index.js</strong></h3>
+<pre><code>// Handle the Dialogflow follow-up intents
+app.intent([&#39;favorite color - yes&#39;, &#39;favorite fake color - yes&#39;], (conv) =&gt; {
+ conv.ask(&#39;Which color, indigo taco, pink unicorn or blue grey coffee?&#39;);
+ // If the user is using a screened device, display the carousel
+ if (conv.screen) return conv.ask(fakeColorCarousel());
+});</code></pre>
+<p>最後に、2つの新しい follow-up インテントをトリガーする Suggestion chips を <code>favorite fake color</code> インテントハンドラに追加します。</p>
+<p><img style="max-width: 24.00px" src="img/a3c16fc17be25f6c.png"> <code>index.js</code> ファイルの中で、以下のコードに置き換えることで、<code>favorite fake color</code> インテントを Suggestion chips を使うように更新します。</p>
+<h3><strong>index.js</strong></h3>
+<pre><code>// Handle the Dialogflow intent named &#39;favorite fake color&#39;.
+// The intent collects a parameter named &#39;fakeColor&#39;.
+app.intent(&#39;favorite fake color&#39;, (conv, {fakeColor}) =&gt; {
+ fakeColor = conv.arguments.get(&#39;OPTION&#39;) || fakeColor;
+ // Present user with the corresponding basic card and end the conversation.
+ conv.ask(`Here&#39;s the color.`, new BasicCard(colorMap[fakeColor]));
+ if (!conv.screen) {
+   conv.ask(colorMap[fakeColor].text);
+ }
+});</code></pre>
+<p>これを以下に置き換えます。</p>
+<h3><strong>index.js</strong></h3>
+<pre><code>// Handle the Dialogflow intent named &#39;favorite fake color&#39;.
+// The intent collects a parameter named &#39;fakeColor&#39;.
+app.intent(&#39;favorite fake color&#39;, (conv, {fakeColor}) =&gt; {
+  fakeColor = conv.arguments.get(&#39;OPTION&#39;) || fakeColor;
+  // Present user with the corresponding basic card and end the conversation.
+  if (!conv.screen) {
+    conv.ask(colorMap[fakeColor].text);
+  } else {
+    conv.ask(`Here you go.`, new BasicCard(colorMap[fakeColor]));
+  }
+  conv.ask(&#39;Do you want to hear about another fake color?&#39;);
+  conv.ask(new Suggestions(&#39;Yes&#39;, &#39;No&#39;));
+});</code></pre>
+<h2><strong>カルーセルの follow-up プロンプトをテストする</strong></h2>
+<p>ターミナル内で、Firebaseに更新されたWebhookコードをデプロイするために、以下のコマンドを実行します。</p>
+<pre><code>firebase deploy</code></pre>
+<aside class="special"><p><strong>Tip: </strong><a href="https://developers.google.com/actions/tools/simulator" target="_blank">Actions simulator guide</a> にて、あなたはActions simulatorの利用に関する最新の情報を見つけることができます。以下に書かれている手順に従った際に何らかの問題が発生した場合は、そのガイドを参照してください。</p>
+</aside>
+<ol type="1" start="1">
+<li>Actions consoleにて、<strong>Test &gt; Simulator</strong> に移動します。</li>
+<li><strong>Surface</strong> の中で、<strong>Smart Display</strong> アイコンを選択します。</li>
+</ol>
+<p><img style="max-width: 129.00px" src="img/9f3cdf4619dc048d.png"></p>
+<ol type="1" start="3">
+<li><strong>Input</strong> フィールド内に &#34;Talk to my test app&#34; とタイプして enter キーを押します。もしあなたのアクションがあなたの名前を覚えていない場合は、&#34;yes&#34; とタイプします。</li>
+<li>&#34;blue&#34; とタイプします。</li>
+<li>&#34;yes&#34; とタイプします。</li>
+<li>カルーセルの選択肢を一つクリックします。あなたは別の色を選択するかどうか聞かれるはずです。そして、Basic cardの下に、Yes または No を言うための Suggestion chips があるのがわかるはずです。</li>
+</ol>
+<p><img style="max-width: 602.00px" src="img/b83c30f03cdccc1f.png"></p>
+<p><strong>Yes</strong> をクリックすると、再びカルーセルが表示されるはずです。そして、<strong>No</strong> chipは、フレンドリーなメッセージと共に会話から抜けるはずです。</p>
+<p>あなたはまた、画面の機能を持たないデバイス上でどのように実行されるかについて、あなたの応答をテストすべきです。異なるサーフェスであなたの応答をテストするために、以下を行います。</p>
+<ol type="1" start="1">
+<li>前の会話を終えるために、&#34;No をタイプまたはクリックします。</li>
+<li><strong>Surface</strong> の中で、<strong>Speaker</strong> アイコンを選択します。</li>
+</ol>
+<p><img style="max-width: 122.00px" src="img/489afc5b2552d759.png"></p>
+<ol type="1" start="3">
+<li><strong>Input</strong> フィールド内で &#34;Talk to my test app&#34; とタイプして enter キーを押します。もしアクションがあなたの名前を覚えていなかった場合は、&#34;yes&#34; とタイプします。</li>
+<li>&#34;blue&#34; とタイプします。</li>
+<li>&#34;sure&#34; とタイプします。</li>
+<li>&#34;indigo taco&#34; とタイプします。あなたは、別の色を選択したいかどうか尋ねられるはずです。</li>
+</ol>
+<p>&#34;yes&#34; による応答では、再び3つの色があなたに提示されるはずです。そして、&#34;no&#34; による応答では、フレンドリーなメッセージと共に会話が終わるはずです。</p>
+<p><img style="max-width: 602.00px" src="img/7b28dcf9b49207a6.png"></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Next steps" duration="1">
+        <p><strong>おめでとうございます！</strong></p>
+<p>あなたは、Actions on Google を使って、会話型ユーザインターフェースを構築するために必要な先進的なスキルを身につけました。</p>
+<h2><strong>追加の学習リソース</strong></h2>
+<p>Actions on Googleについて学ぶために、以下のリソースについても参考にすることができます:</p>
+<ul>
+<li><a href="http://actions.google.com/" target="_blank">actions.google.com</a>: Actions on Googleの公式ドキュメントサイトです。</li>
+<li><a href="https://github.com/actions-on-google/" target="_blank">Actions on Google GitHub repo</a>: サンプルコードとライブラリがあります。</li>
+<li><a href="https://dialogflow.com/" target="_blank">Dialogflow.com</a>: Dialogflowの公式ドキュメントサイトです。</li>
+<li><a href="https://plus.google.com/communities/105684267327487893574" target="_blank">Actions on Google Developers</a>: Actions on Google を使っている開発者向けの公式な Google+ コミュニティです。</li>
+<li><a href="http://actions.google.com/design" target="_blank">Conversation design guidelines</a>: アクションを設計するためのベストプラクティスおよびガイドラインです。</li>
+</ul>
+<p>Twitter <a href="https://twitter.com/ActionsOnGoogle" target="_blank">@ActionsOnGoogle</a> で最新のアナウンスに耳を傾け、 <a href="https://twitter.com/hashtag/AoGDevs?src=hash" target="_blank">#AoGDevs</a> にツイートしてあなたが作ったものを共有しましょう！</p>
+<h2><strong>Feedback survey</strong></h2>
+<p>次に進む前に、私たちに<a href="https://goo.gl/forms/SLcedXyVSNl7RkUc2" target="_blank">このフォーム</a>からフィードバックをいただければと思います。</p>
+
+
+      </google-codelab-step>
+    
+  </google-codelab>
+
+  <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-49880327-14', 'auto');
+
+    (function() {
+      var gaCodelab = '';
+      if (gaCodelab) {
+        ga('create', gaCodelab, 'auto', {name: 'codelab'});
+      }
+
+      var gaView;
+      var parts = location.search.substring(1).split('&');
+      for (var i = 0; i < parts.length; i++) {
+        var param = parts[i].split('=');
+        if (param[0] === 'viewga') {
+          gaView = param[1];
+          break;
+        }
+      }
+      if (gaView && gaView !== gaCodelab) {
+        ga('create', gaView, 'auto', {name: 'view'});
+      }
+    })();
+  </script>
+
+</body>
+</html>

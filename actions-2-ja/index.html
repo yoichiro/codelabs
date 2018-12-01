@@ -1,0 +1,677 @@
+
+<!doctype html>
+
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <meta name="theme-color" content="#4F7DC9">
+  <meta charset="UTF-8">
+  <title>Build Actions for the Google Assistant (Level 2)</title>
+  <script src="./bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <link rel="import" href="./elements/codelab.html">
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro:400|Roboto:400,300,400italic,500,700|Roboto+Mono">
+  <style is="custom-style">
+    body {
+      font-family: "Roboto",sans-serif;
+      background: var(--google-codelab-background, #F8F9FA);
+    }
+  </style>
+  
+</head>
+<body unresolved class="fullbleed">
+
+  <google-codelab title="Build Actions for the Google Assistant (Level 2)"
+                  environment="web"
+                  feedback-link="https://github.com/actions-on-google/codelabs-nodejs/issues">
+    
+      <google-codelab-step label="Overview" duration="1">
+        <p>Actions on Googleは、スマートスピーカー、携帯電話、車、テレビ、ヘッドフォンなど、5億以上のデバイスにわたって、Googleの仮想パーソナルアシスタントである<a href="https://assistant.google.com/" target="_blank">Googleアシスタント</a>の機能を拡張するためのソフトウェアを作成できる、開発者向けプラットフォームです。ユーザーは、食料品の購入や乗車予約など、会話の中で物事を成し遂げるためにGoogleアシスタントを活用することができます（現在の機能の完全なリストについては、<a href="https://assistant.google.com/explore/" target="_blank">Actions Directory</a>をご覧ください）。開発者として、あなたはActions on Googleを使用して、ユーザーと自身のサードパーティサービスとの間の楽しく効果的な会話体験を簡単に作成し活用することができます。</p>
+<p>このコードラボモジュールは、マルチモジュールチュートリアルの一部です。各モジュールは、単独で学習することができますし、または他のモジュールと共に順々に学習することもできます。それぞれのモジュールでは、与えられたソフトウェア要件からアクションを構築する方法に関する、エンドツーエンドの指示を提供します。また、ユーザーに高品質の会話体験を提供するアクションを実装するために必要な概念とベストプラクティスについても説明します。</p>
+<p>このコードラボは、Actions on Googleを使用して開発するための中間レベルの概念をカバーしています。このコードラボを開始する前に、<a href="https://codelabs.developers.google.com/codelabs/actions-1-ja/#0" target="_blank">Build Actions for the Google Assistant (Level 1)</a> で説明されているトピックに慣れておくことを強くおすすめします。</p>
+<h2><strong>何をつくりますか？</strong></h2>
+<p>このコードラボでは、複数の機能を使って、洗練された会話型アクションを構築します。</p>
+<ul>
+<li>ディープリンクをサポートして、直接特定のダイアログポイントにてユーザとの会話を開始します。</li>
+<li>Actions on Googleプラットフォームによって提供されるユーティリティを使用して、そのユーザ個人の名前や住所を取得します。</li>
+<li>会話を進めるためにフォローアップの質問を使って応答します。</li>
+<li>サウンドエフェクトを備えたリッチなビジュアルレスポンスをユーザーに提供します。</li>
+</ul>
+<p><img style="max-width: 624.00px" src="img/e548d7a0f70128aa.png"></p>
+<h2 class="checklist"><strong>What you&#39;ll learn</strong></h2>
+<ul class="checklist">
+<li>Node.jsクライアントライブラリを使ったローカルでのあなたのフルフィルメントの開発方法。</li>
+<li>Firebaseコマンドラインを使ったアクションのデプロイ方法。</li>
+<li>ディープリンクの作成方法。</li>
+<li>ヘルパーインテントの使用方法。</li>
+<li>Dialogflowカスタムエンティティの追加方法。</li>
+<li>SSMLを使ったサウンドエフェクトの作成方法。</li>
+<li>コンテキストを伴うDialogflowフォローアップインテントの追加方法。</li>
+<li>リッチレスポンスの作成方法（basic cards）。</li>
+<li>セッションデータの保存方法。</li>
+</ul>
+<h2><strong>必要なもの</strong></h2>
+<p>以下のツールがあなたの環境に必要となります。</p>
+<ul>
+<li><a href="https://www.jetbrains.com/webstorm" target="_blank">WebStorm</a>、<a href="https://atom.io/" target="_blank">Atom</a>、<a href="https://www.sublimetext.com/" target="_blank">Sublime</a> のような、あなたが選択したIDE/テキストエディタ。</li>
+<li>インストールされているNodeJS、npm、gitを使ってシェルコマンドを実行するためのターミナル。</li>
+<li><a href="https://www.google.com/chrome/" target="_blank">Chrome</a> のようなウェブブラウザ。</li>
+<li><a href="https://github.com/" target="_blank">GitHub.com</a> アカウント（無料で作成することができます）。</li>
+</ul>
+<p>JavaScript (ES6) に慣れておくことを強く推奨しますが、このコードラボで使われているWebhookコードを理解するためには、必須ではありません。</p>
+<h2><strong>任意: サンプルコード</strong></h2>
+<p>任意ですが、私たちの<a href="https://github.com/actions-on-google/codelabs-nodejs" target="_blank">GitHubリポジトリ</a>から、このコードラボの全てのプロジェクトコードを得ることができます。</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Install the Firebase command-line interface" duration="5">
+        <p>Firebase Command Line Interface (CLI) は、Cloud Functions にあなたの Actions project をデプロイ可能にします。</p>
+<aside class="special"><p><strong>Tip:</strong> CLIをインストールするために、あなたは <a href="https://nodejs.org/en/" target="_blank">Node.js</a> に通常含まれる <a href="https://www.npmjs.com/" target="_blank">npm</a> をインストールする必要があります。</p>
+</aside>
+<p>CLIをインストールまたはアップグレードするために、以下の npm コマンドを実行してください:</p>
+<pre><code>npm -g install firebase-tools</code></pre>
+<aside class="warning"><p>動きませんか？ <a href="https://docs.npmjs.com/getting-started/fixing-npm-permissions" target="_blank">npm のパーミッションを変更</a>する必要があるかも知れません。</p>
+</aside>
+<p>CLI が正しくインストールされたかどうかを検証するために、ターミナルを開いて、以下を実行してください:</p>
+<pre><code>firebase --version</code></pre>
+<p>Cloud Functions の最新の機能全てが必要となるので、Firebase CLI のバージョンが <strong>3.5.0</strong> 以上かどうかを確認してください。もしそうでなければ、3.5.0 以上にアップグレードするために、 <code>npm install -g firebase-tools</code> を実行してください。</p>
+<p>次のコマンドを実行して、Firebase CLI を認可します:</p>
+<pre><code>firebase login</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Set up for local development" duration="10">
+        <p><a href="https://codelabs.developers.google.com/codelabs/actions-1-ja/#0" target="_blank">Build Actions for the Google Assistant (Level 1)</a> にて、あなたの最初の Actions project を迅速に開始するために、私たちは Dialogflow インラインエディタを使いました。</p>
+<p>このコードラボでは、Level 1 コードラボからの Dialogflow インテントを使って開始しようと思いますが、<a href="https://firebase.google.com/docs/functions/" target="_blank">Cloud Funcitions for Firebase</a> を使って、あなたのマシンのローカル上で Webhook を開発し、デプロイします。</p>
+<aside class="special"><p><strong>キーとなる用語:</strong></p>
+<ul>
+<li><strong>Cloud Functions for Firebase:</strong> クラウド上の管理された環境にてあなたの Webhook コードを実行させる、Googleが提供するサーバです。あなたは Firebase CLI (command-line interface) ツールを使って、Google Cloud Functions にあなたの Webhook をデプロイします。</li>
+</ul>
+</aside>
+<h2><strong>なぜあなたのアクションをローカルで開発するのか？</strong></h2>
+<p>Dialogflow インラインエディタを使用するのとは対照的に、ローカルマシンを使用すると、プログラミング環境とデプロイメント環境をより詳細に制御できます。これにはいくつかの利点があります:</p>
+<ul>
+<li>ローカルで開発された Webhook は、Actions on Googleの機能に関するより大きなソフトウェアパッケージをサポートしています。</li>
+<li>あなたは、一つの Webhook 実装ファイル（<code>index.js</code>） のみに制限されません。</li>
+<li>また、ローカル環境で開発することで、バージョン管理のようなソフトウェアエンジニアリングのベストプラクティスに従うことができます。</li>
+</ul>
+<h2><strong>ベースファイルのダウンロード</strong></h2>
+<p>このコードラボのベースとなるファイルを得るために、Level 1 コードラボのための GitHub リポジトリを clone するために、以下のコマンドを実行してください。</p>
+<pre><code>git clone https://github.com/actions-on-google/codelabs-nodejs</code></pre>
+<p>このリポジトリは、以下の重要なファイルを含んでいます:</p>
+<ul>
+<li><code>level1-complete/functions/index.js</code>. あなたのフルフィルメントコードを含む JavaScript ファイルです。これは、追加のアクションや機能を追加していくことになる中心的なファイルです。</li>
+<li><code>level1-complete/functions/package.json</code>. このファイルは、この Node.js プロジェクトの依存関係やその他のメタデータのアウトラインを示します。このコードラボでは、このファイルは無視できます。Actions on Google クライアントライブラリの異なるバージョンや、他のNode.jsモジュールを使いたい場合にのみ、このファイルを編集する必要があります。</li>
+<li><code>level1-complete/codelab-level-one.zip</code>. これは、Level 1 コードラボのための Dialogflow エージェントファイルです。もし既に Level 1 コードラボを完了している場合は、このファイルを無視しても大丈夫です。</li>
+</ul>
+<p>わかりやすくするために、 <code>/level1-complete</code> のディレクトリ名を <code>/level2</code> に変更することを強くお勧めします。ターミナルで <code>mv</code> コマンドを使用して変更することができます。例えば、以下です:</p>
+<pre><code>$ cd codelabs-nodejs
+$ mv ./level1-complete ./level2</code></pre>
+<h2><strong>プロジェクトとエージェントのセットアップ</strong></h2>
+<p>次に、あなたは Actions project と、コードラボのための Dialogflow エージェントをセットアップすることが必要です。</p>
+<p>もし既に <a href="https://codelabs.developers.google.com/codelabs/actions-1-ja/#0" target="_blank">Build Actions for the Google Assistant (Level 1)</a> コードラボを完了している場合は、以下を行います:</p>
+<ol type="1" start="1">
+<li><a href="https://console.dialogflow.com/" target="_blank">Dialogflow Console</a> に直接行きます。</li>
+<li><strong>Fulfillment</strong> に遷移します。</li>
+<li><strong>Inline Editor</strong> を無効にします。</li>
+</ol>
+<p>もしゼロから始める場合は、以下を行います。</p>
+<ol type="1" start="1">
+<li><a href="https://console.actions.google.com/" target="_blank">Actions Console</a> を開きます。</li>
+<li><strong>Add/import project</strong> をクリックします。</li>
+<li>&#34;actions-codelab-2&#34; のように、<strong>Project name</strong> にタイプします。この名前は、内部参照向けであり、あとで外部向けの名前をセットすることができます。</li>
+<li><strong>Create Project</strong> をクリックします。</li>
+<li>カテゴリを選択せず、右上のコーナー付近にある <strong>Skip</strong> をクリックします。</li>
+<li>左のナビにて、<strong>Build &gt; Actions</strong> をクリックします。</li>
+<li><strong>Add your first Action</strong> をクリックします。</li>
+<li>あなたのアクション向けに少なくとも一つ言語を選択して、続いて <strong>Update</strong> をクリックします。このコードラボでは、私たちは English のみの選択を推奨します。</li>
+<li><strong>Custom intent</strong> ダイアログ上で、Dialogflow Console を起動するために <strong>Build</strong> をクリックします。</li>
+<li><strong>Create</strong> をクリックします。</li>
+<li>左のナビゲーションにあるギアアイコンをクリックします。</li>
+<li><strong>Export and Import</strong> をクリックします。</li>
+<li><strong>Restore From Zip</strong> をクリックします。</li>
+</ol>
+<p><img style="max-width: 624.00px" src="img/1f1d3788a3eada94.png"></p>
+<ol type="1" start="14">
+<li><code>codelab-level-one.zip</code> ファイルをアップロードします。</li>
+<li>&#34;RESTORE&#34; をタイプして、<strong>Restore</strong> ボタンをクリックします。</li>
+<li><strong>Done</strong> をクリックします。</li>
+</ol>
+<h2><strong>フルフィルメントのデプロイ</strong></h2>
+<p>いま、あなたの Actions project および Dialogflow エージェントが準備できました。Firebase Functions CLI を使って、ローカルの <code>index.js</code> ファイルをデプロイするために、以下を行ってください:</p>
+<ol type="1" start="1">
+<li>ターミナル内で、ベースファイルを clone した <code>/level2/functions</code> ディレクトリに移動します。</li>
+<li>あなたがセットした Actions project ID を使って、以下のコマンドを実行します:</li>
+</ol>
+<pre><code>firebase use &lt;PROJECT_ID&gt;</code></pre>
+<aside class="special"><p><strong>Tip:</strong> あなたの Actions project の ID は、Actions Console の <strong>Overview</strong> &gt; (Gear icon) &gt; <strong>Project settings</strong> で見つけることができます。</p>
+</aside>
+<p><img style="max-width: 624.00px" src="img/ce6bc52a4491e7ab.png"></p>
+<ol type="1" start="3">
+<li>依存ファイルをインストールするために、ターミナル内で以下のコマンドを実行します。</li>
+</ol>
+<pre><code>npm install</code></pre>
+<ol type="1" start="4">
+<li>Firebase にあなたの Webhook をデプロイするために、以下のコマンドをターミナル内で実行します。</li>
+</ol>
+<pre><code>firebase deploy</code></pre>
+<aside class="warning"><p>&#34;An unexpected error has occurred from the CLI&#34; というエラーメッセージが表示された場合は、<code>firebase deploy</code> コマンドを再度実行してみてください。</p>
+</aside>
+<p>数分後、あなたは Firebase にあなたの Webhook が正常にデプロイされたことを示す &#34;<strong>Deploy complete!</strong>&#34; というメッセージを見るはずです。</p>
+<h2><strong>デプロイメントURLの入手</strong></h2>
+<p>あなたは、Cloud Functions の URL を Dialogflow に提供する必要があります。この URL を得るために、以下の手順に従ってください:</p>
+<ol type="1" start="1">
+<li><a href="https://console.firebase.google.com/" target="_blank">Firebase Console</a> を開きます。</li>
+<li>オプションのリストから、あなたの Actions project を選択します。</li>
+<li>左のナビゲーションメニューから、<strong>Develop &gt; Functions</strong> に移動します。</li>
+<li><strong>Dashboard</strong> タブにて、<strong>Event</strong> の下にある &#34;dialogflowFirebaseFulfillment&#34; のエントリに URL があるはずです。この URL をコピーします。</li>
+</ol>
+<p><img style="max-width: 624.00px" src="img/a5321636dc63c0f8.png"></p>
+<h2><strong>DialogflowにてURLをセットする</strong></h2>
+<p>この時点で、あなたはフルフィルメントを使うために Dialogflow エージェントを交信する必要があります。そのためには、以下の手順に従います:</p>
+<ol type="1" start="1">
+<li><a href="https://console.dialogflow.com/" target="_blank">Dialogflow Console</a> を開きます (Firebase console は閉じてしまっても大丈夫です)。</li>
+<li>左のナビゲーションから、<strong>Fulfillment</strong> に移動します。</li>
+<li><strong>Webhook</strong> を有効にします。</li>
+<li>既に表示されていない場合は、Firebase dashboard からコピーした URL をペースとします。</li>
+<li><strong>Save</strong> をクリックします。</li>
+</ol>
+<p><img style="max-width: 624.00px" src="img/48fb75746b11f5ba.png"></p>
+<h2><strong>プロジェクトが正しくセットアップされたかどうかを確認する</strong></h2>
+<p>この時点で、ユーザーは明示的にアクションを呼び出すことによって会話を開始できます。ユーザーは会話の途中で色を指定することで、&#34;favorite color&#34; カスタムインテントをトリガーできます。 Dialogflow は、ユーザの入力を解析して、あなたのフルフィルメントに必要な情報、つまり色を抽出し、これをあなたのフルフィルメントに送ります。あなたのフルフィルメントは、ユーザーに返信するために幸運な数字を自動生成します。</p>
+<aside class="special"><p><strong>Tip:</strong> この<a href="https://developers.google.com/actions/tools/simulator" target="_blank">ガイド</a>では、Actions Console simulatorの利用に関する最新情報を確認できます。以下の手順を行った際に問題が発生した場合は、こちらを参照してください。</p>
+</aside>
+<p>Actions console simulator であなたのアクションをテストするために以下を行ってください。</p>
+<ol type="1" start="1">
+<li>Dialogflow Console の左のナビゲーションにて、 <strong>Integrations &gt; Google Assistant</strong> をクリックします。</li>
+<li><strong>Auto-preview changes</strong> が有効になっていることを確認して、Actions project を更新するために <strong>Test</strong> をクリックします。</li>
+<li>Actions Console simulator は、あなたのアクションを読み込みます。アクションをテストするために、<strong>Input</strong> フィールド内に &#34;Talk to my test app&#34; とタイプして、Enter キーを押します。</li>
+<li>&#34;Welcome! What is your favorite color?&#34; という返事を得るはずです。</li>
+<li>&#34;Blue&#34; とタイプします。</li>
+<li>&#34;Your lucky number is 4.&#34; という返事を得るはずです。</li>
+</ol>
+<aside class="warning"><p>このレスポンスが表示されない場合は、Firebase の設定に問題がある可能性があります。この場合は、&#34;フルフィルメントのデプロイ&#34; セクションの手順を繰り返してください。</p>
+</aside>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Add a deep link to your action" duration="10">
+        <p>Actions projectには常に &#34;Google IO 18&#34; などの呼び出し名があります。ユーザーが &#34;Talk to Google IO 18&#34; と言うと、これは Dialogflow のウェルカムインテントをトリガーします。すべての Dialogflow エージェントには、ユーザが会話を開始するためのエントリポイントとして機能するウェルカムインテントが1つあります。</p>
+<p>ほとんどの場合、ユーザーは毎回会話の始めからスタートするよりも、達成したい特定のタスクにジャンプしたいと考えるでしょう。明示的なディープリンクとImplicit invocation（暗黙的な呼び出し）を対話のショートカットとして提供して、ユーザーがより効率的に作業を進めるようにすることができます。</p>
+<aside class="special"><p><strong>キーとなる用語:</strong></p>
+<ul>
+<li><strong>Explicit invocation:</strong> ユーザーがアクションの名前を使用してウェルカムインテントを呼び出す場所です（例: &#34;Hey Google、Talk to Movie Time&#34;）。また、ユーザーはインテントと一緒にアクション呼び出しフレーズを指定することで、アクションにディープリンクすることもできます（例: &#34;Hey Google, talk to Movie Time to look up showtimes for today&#34; など）。</li>
+<li><strong>Implicit invocation:</strong> ユーザーがその名前を使用せずにアクションを呼び出す時です（例: &#34;He​​y Google, I need a chicken soup recipe&#34; など）。アシスタントは、さまざまなシグナルに基づいてユーザーの要求を照合し、ユーザーがインテントを達成するために選択できるアクションの選択肢を提示します。</li>
+</ul>
+</aside>
+<p>ディープリンクとImplicit invocationをアクションに追加することは、Dialogflow Console の Googleアシスタントの統合ページを使用することで、簡単で単一ステップのプロセスです。</p>
+<h2><strong>ディープリンクとImplicit invocationのためのインテントの追加</strong></h2>
+<p>Actions project では、エージェントにて &#34;favorite color&#34; という Dialogflow カスタムインテントを定義しておく必要があります（これはレベル1のコードラボで説明されています）。エージェントは、&#34;I love yellow&#34; や &#34;Purple is my favorite&#34; などのトレーニングフレーズを解析し、各フレーズから color パラメータを抽出して、フルフィルメントで使用できるようにします。</p>
+<p>このコードラボでは、Implicit invocation として &#34;favorite color&#34; インテントを追加します。つまり、ユーザーはそのインテントを呼び出すことで、ウェルカムインテントをスキップできます。これにより、ユーザーは &#34;favorite color&#34; インテントをディープリンクとして明示的に呼び出すこともできます（例: &#34;Hey Google, talk to my test app about blue&#34; など）。 &#34;favorite color&#34; インテントに対して定義したトレーニングフレーズとパラメータは、Dialogflowがユーザーがこのディープリンクを呼び出したときに color パラメータを抽出できるようにします。</p>
+<p>ディープリンクとImplicit invocationのためのインテントを追加するために、以下を行ってください:</p>
+<ol type="1" start="1">
+<li>Dialogflow Console の左のナビゲーションにて、<strong>Integrations</strong> をクリックします。</li>
+<li><strong>Google Assistant</strong> カードにて、<strong>Integration Setting</strong> をクリックします。</li>
+<li><strong>Discovery &gt; Implicit Invocations</strong> にて、<strong>Add intent</strong> をクリックして、<strong>favorite color</strong> を選択します。</li>
+</ol>
+<p>これで、アシスタントはユーザーから呼び出し時に色が提供されることを聞くようになり、そしてフルフィルメント向けに color パラメーターを抽出するようになります。</p>
+<p><img style="max-width: 624.00px" src="img/37de31b7e846e86b.png"></p>
+<h2><strong>ディープリンクをテストする</strong></h2>
+<aside class="special"><p><strong>Tip:</strong> この<a href="https://developers.google.com/actions/tools/simulator" target="_blank">ガイド</a>では、Actions Console simulatorの利用に関する最新情報を確認できます。以下の手順を行った際に問題が発生した場合は、こちらを参照してください。</p>
+</aside>
+<p>Actions console simulator にてディープリンクをテストするには、以下を行います:</p>
+<ol type="1" start="1">
+<li>Actions project をアップデートするために、<strong>Test</strong> をクリックします。</li>
+<li><strong>Input</strong> フィールドに &#34;Talk to my test app about blue&#34; とタイプして、Enter キーを押します。</li>
+</ol>
+<p><img style="max-width: 624.00px" src="img/ca857fc333acb34f.png"></p>
+<h2><strong>カスタムフォールバックインテントの定義</strong></h2>
+<p>探しているパラメータを提供しない呼び出しフレーズを処理するカスタムフォールバックインテントを作成することをお勧めします。たとえば、色を言うのではなく、ユーザが &#34;Talk to my test app about bananas&#34; のような予期しないことを言うかもしれません。&#34;bananas&#34; という用語は、私たちの Dialogflow インテントには適していないので、全てを受け取るインテントを構築する必要があります。</p>
+<p>アシスタントは &#34;faavorite color&#34; インテントと一致するフレーズを聞くようになったので、他のものをキャッチするためのカスタムのフォールバックインテントを提供する必要があります。</p>
+<p>カスタムフォールバックインテントをセットアップするには、以下を行います:</p>
+<ol type="1" start="1">
+<li>Dialogflow Console にて、左のナビゲーションで <strong>Intents</strong> をクリックし、その後 <strong>Create Intent</strong> をクリックします。</li>
+<li>そのインテントに &#34;Unrecognzed Deep Link&#34; またはそれと同等の名前を付けます。このインテント名は Webhook で参照されないので、好きなように名付けることができます。</li>
+</ol>
+<aside class="special"><p><strong>Tip:</strong> インテント名では大文字と小文字が区別されます。 Webhook でそれを参照するときは、Dialogflow Console で指定したとおりに入力してください。</p>
+</aside>
+<ol type="1" start="3">
+<li><strong>Contexts</strong> の下にある <strong>Add input context</strong> をクリックし、&#34;google_assistant_welcome&#34; と入力します。このインテントが &#34;&#39;google_assistant_welcome&#34; 入力コンテキストを使用するように指定すると、会話の開始時にのみ呼び出されるようになります。入力コンテキストを登録した後、出力コンテキストとして &#34;google_assistant_welcome&#34; も表示されます。その出力コンテキストを削除するには、<strong>x</strong> をクリックします。</li>
+</ol>
+<p><img style="max-width: 624.00px" src="img/801a5eb85bdc0fb6.png"></p>
+<ol type="1" start="4">
+<li><strong>Training phrases</strong> にて、ユーザの言うこととして &#34;banana&#34; (または他の名詞) を追加します。</li>
+<li><code>@sys.any</code> エンティティを使用して、Dialogflow に式を（&#34;banana&#34; だけでなく）任意の文法に一般化するよう指示します。&#34;banana&#34; をダブルクリックしてフィルタリングするか、<code>@sys.any</code> を選択してください。</li>
+<li><code>@sys.any</code> エンティティを使用しないように警告メッセージがポップアップ表示されます。今のところこれを無視しても問題ありません。<strong>OK</strong> をクリックします（通常、<code>@sys.any</code> エンティティを使用することはお勧めできません。これは、他のインテントの音声バイアスを圧倒する可能性があるためです。これは、他のインテントが一致していない呼び出し時にのみ起動されることを保証する特殊なケースです。）。</li>
+</ol>
+<p><img style="max-width: 614.00px" src="img/645cf2d86f101e70.png"></p>
+<ol type="1" start="7">
+<li><strong>Responses</strong> にて、<strong>Text response</strong> として &#34;Sorry, I am not sure about $any . What&#39;s your favorite color?&#34; を追加します。</li>
+</ol>
+<p><img style="max-width: 618.00px" src="img/a94d27131bb4f9e9.png"></p>
+<ol type="1" start="8">
+<li><strong>Save</strong> をクリックします。</li>
+</ol>
+<h2><strong>カスタムフォールバックインテントをテストする</strong></h2>
+<aside class="special"><p><strong>Tip:</strong> この<a href="https://developers.google.com/actions/tools/simulator" target="_blank">ガイド</a>では、Actions Console simulatorの利用に関する最新情報を確認できます。以下の手順を行った際に問題が発生した場合は、こちらを参照してください。</p>
+</aside>
+<p>Actions console simulator にてカスタムフォールバックインテントをテストするために、<strong>Input</strong> フィールドに &#34;Talk to my test app about banana&#34; とタイプして、Enter キーを押します。</p>
+<p><img style="max-width: 594.00px" src="img/11ac0fe8d76c76b1.png"></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Personalize your responses with helper intents" duration="10">
+        <p>ユーザーのパーソナライズされた情報を使用することで、あなたのアクションをより魅力的でインタラクティブにすることができます。ユーザー情報へのアクセスを要求するために、Webhook はヘルパーインテントを使用して応答をパーソナライズするための値を取得することができます。</p>
+<aside class="special"><p><strong>キーとなる用語:</strong></p>
+<ul>
+<li><strong>Helper intents:</strong> アシスタントに会話の一部を処理させたい場合、あなたのフルフィルメントはヘルパーインテントを呼び出します。ヘルパーインテントは、ユーザーの名前と場所（<code>actions_intent_PERMISSION</code>）、ユーザー選択（<code>actions_intent_OPTION</code>）、日付と時間（<code>actions_intent_DATETIME</code>）などの頻繁に要求される情報を返します。ヘルパーインテントの詳細については、<a href="https://developers.google.com/actions/assistant/helpers" target="_blank">このガイド</a>を参照してください。</li>
+</ul>
+</aside>
+<h2>p<strong>ermission ヘルパーインテントを使ってユーザ情報を取得する</strong></h2>
+<p><code>actions_intent_PERMISSION</code> ヘルパーインテントを使用して、ユーザの同意によってユーザーの表示名を取得することができます。permission ヘルパーインテントを使用するには、以下を行います。</p>
+<ol type="1" start="1">
+<li><a href="https://console.dialogflow.com/" target="_blank">Dialogflow Console</a> にて、<strong>Intents</strong> に移動します。</li>
+<li><strong>Default Welcome Intent</strong> を選択します。</li>
+<li><strong>Fulfillment</strong> にて、<strong>Enable webhook call for this intent</strong> を有効にします。Webhook からのレスポンスは、上の <strong>Text responses</strong> にタイプした任意のレスポンスを上書きするでしょう。</li>
+<li><strong>Save</strong> をクリックします。</li>
+<li><strong>Intents</strong> に戻ります。</li>
+<li><strong>Create Intent</strong> をクリックします。</li>
+<li>インテントに &#34;actions_intent_PERMISSION&#34; と名前を付けます。</li>
+</ol>
+<aside class="special"><p><strong>Tip:</strong> インテント名は大文字小文字が区別されます。あなたの Webhook 内で参照される時は、それが Dialogflow Console で指定した通りかどうかを確認してください。</p>
+</aside>
+<ol type="1" start="8">
+<li><strong>Events</strong> にて、<strong>Add event</strong> をクリックし、&#34;actions_intent_PERMISSION&#34; を入力してください。</li>
+<li><strong>Fulfillment</strong> にて、<strong>Enable webhook call for this intent </strong>を有効にします。</li>
+<li><strong>Save</strong> をクリックします。</li>
+<li>ターミナル内で、<code>/level2/functions</code> フォルダに移動し、あなたのローカルマシン内で任意のテキストエディアを使って <code>index.js</code> ファイルを開きます。</li>
+<li>このコードを置き換えます。</li>
+</ol>
+<pre><code>const {dialogflow} = require(&#39;actions-on-google&#39;);</code></pre>
+<p>以下に置き換えます。</p>
+<h3><a href="https://github.com/actions-on-google/codelabs-nodejs/blob/master/level2-complete/functions/index.js" target="_blank">index.js</a></h3>
+<pre><code>// Import the Dialogflow module from the Actions on Google client library.
+const {
+  dialogflow,
+  Permission,
+} = require(&#39;actions-on-google&#39;);</code></pre>
+<ol type="1" start="13">
+<li>以下のコードをファイルの最後に追加します。</li>
+</ol>
+<h3><a href="https://github.com/actions-on-google/codelabs-nodejs/blob/master/level2-complete/functions/index.js" target="_blank">index.js</a></h3>
+<pre><code>// Handle the Dialogflow intent named &#39;Default Welcome Intent&#39;.
+app.intent(&#39;Default Welcome Intent&#39;, (conv) =&gt; {
+  conv.ask(new Permission({
+    context: &#39;Hi there, to get to know you better&#39;,
+    permissions: &#39;NAME&#39;
+  }));
+});</code></pre>
+<ol type="1" start="14">
+<li>ファイルを保存します。</li>
+</ol>
+<h2><strong>ユーザ情報を使ってレスポンスをカスタマイズする</strong></h2>
+<p>Next, you&#39;ll need to update your webhook to handle the response. You&#39;ll use the user&#39;s information in your response if they granted permission and gracefully move the conversation forward regardless if permission was not granted.</p>
+<p>次に、応答を処理するために Webhook を更新する必要があります。もしユーザが許可を与えていれば、あなたは応答の中でユーザ情報を利用することになります。そして、もし許可が与えられていなかった場合でも、適切に会話を前に進めます。</p>
+<p>ユーザに応答するために、以下を行います:</p>
+<ol type="1" start="1">
+<li><code>index.js</code> に以下のコードを追加します。</li>
+</ol>
+<h3><a href="https://github.com/actions-on-google/codelabs-nodejs/blob/master/level2-complete/functions/index.js" target="_blank">index.js</a></h3>
+<pre><code>// Handle the Dialogflow intent named &#39;actions_intent_PERMISSION&#39;. If user
+// agreed to PERMISSION prompt, then boolean value &#39;permissionGranted&#39; is true.
+app.intent(&#39;actions_intent_PERMISSION&#39;, (conv, params, permissionGranted) =&gt; {
+  if (!permissionGranted) {
+    conv.ask(`Ok, no worries. What&#39;s your favorite color?`);
+  } else {
+    conv.data.userName = conv.user.name.display;
+    conv.ask(`Thanks, ${conv.data.userName}. What&#39;s your favorite color?`);
+  }
+});</code></pre>
+<p>前に作成した <code>actions_intent_PERMISSION</code> インテントを処理するコールバック関数を登録します。コールバックでは、まずユーザーの表示名を知る権限を与えられているかどうかをチェックします。クライアントライブラリは、この引数を3番目のパラメータ（ここでは <code>permissionGranted</code>）としてコールバック関数に渡します。</p>
+<p><code>conv.user.name.display</code> 値は、HTTPリクエストボディの一部として Webhook に送信されるユーザーの表示名を表しています。ユーザーがパーミッションを与えた場合は、 <code>conv.data</code> オブジェクトの <code>userName</code> というプロパティに <code>conv.user.name.display</code> の値を格納します。</p>
+<p><code>conv.data</code> オブジェクトは、ダイアログ内ストレージのためにクライアントライブラリによって提供されるデータ構造です。このユーザーの会話中、このオブジェクトのプロパティを設定し操作することができます。</p>
+<ol type="1" start="2">
+<li>以下のコードを置き換えます。</li>
+</ol>
+<pre><code>app.intent(&#39;favorite color&#39;, (conv, {color}) =&gt; {
+    const luckyNumber = color.length;
+    conv.close(&#39;Your lucky number is &#39; + luckyNumber);
+});</code></pre>
+<p>以下にします。</p>
+<h3><a href="https://github.com/actions-on-google/codelabs-nodejs/blob/master/level2-complete/functions/index.js" target="_blank">index.js</a></h3>
+<pre><code>// Handle the Dialogflow intent named &#39;favorite color&#39;.
+// The intent collects a parameter named &#39;color&#39;
+app.intent(&#39;favorite color&#39;, (conv, {color}) =&gt; {
+  const luckyNumber = color.length;
+  if (conv.data.userName) {
+    conv.close(`${conv.data.userName}, your lucky number is ${luckyNumber}.`);
+  } else {
+    conv.close(`Your lucky number is ${luckyNumber}.`);
+  }
+});</code></pre>
+<p>ここでは、<code>userName</code><strong> </strong>プロパティを使用してユーザーを名前で指定するために、 &#34;favorite color&#34; インテントのコールバック関数を変更します。 <code>conv.data</code> オブジェクトに <code>userName</code> という名前のプロパティがない場合（つまり、ユーザが、ユーザ名を知る権限を以前に拒否したため、プロパティが設定されていない場合）、Webhook は引き続き応答しますが、ユーザの名前は使用しません。</p>
+<ol type="1" start="3">
+<li>ファイルを保存します。</li>
+<li>ターミナル内で、Firebase に Webhook をデプロイするために、以下のコマンドを実行します。</li>
+</ol>
+<pre><code>firebase deploy</code></pre>
+<h2><strong>コードをテストする</strong></h2>
+<aside class="special"><p><strong>Tip:</strong> この<a href="https://developers.google.com/actions/tools/simulator" target="_blank">ガイド</a>では、Actions Console simulatorの利用に関する最新情報を確認できます。以下の手順を行った際に問題が発生した場合は、こちらを参照してください。</p>
+</aside>
+<p>Actions console simulator にてアクションをテストするために、以下を行います:</p>
+<ol type="1" start="1">
+<li>Input フィールドにて &#34;Talk to my test app&#34; とタイプして、Enter キーを押します。</li>
+<li>&#34;yes&#34; とタイプします。</li>
+<li>&#34;blue&#34; とタイプします。</li>
+</ol>
+<p><img style="max-width: 425.00px" src="img/bd633eb285228586.png"></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Add audio effects with SSML" duration="5">
+        <p>レスポンス文字列に <a href="https://developers.google.com/actions/reference/ssml" target="_blank">SSML</a> を埋め込んで、音声応答のサウンドを変更したり、サウンドエフェクトやその他のオーディオクリップを埋め込んだりすることもできます。</p>
+<aside class="special"><p><strong>キーとなる用語:</strong></p>
+<ul>
+<li><strong>Speech Synthesis Markup Language (SSML):</strong> 合成音声を生成するためのテキストをマークアップするための標準的な方法を提供するマークアップ言語です。アシスタントが応答内のテキストから音声を生成する方法をさらに制御する必要がある場合は、SSMLを使用できます。 SSMLの詳細については、<a href="https://developers.google.com/actions/reference/ssml" target="_blank">このガイド</a>を参照してください。</li>
+</ul>
+</aside>
+<p>以下は、SSML マークアップの例を示しています。</p>
+<pre><code>&lt;speak&gt;
+  Mandy, your lucky number is 5.
+  &lt;audio src=&#34;https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg&#34;&gt;&lt;/audio&gt;
+&lt;/speak&gt;</code></pre>
+<h2><strong>サウンドエフェクトを追加するためにSSMLを使用する</strong></h2>
+<p>このコードラボでは、私たちはActions on Googleの<a href="https://developers.google.com/actions/tools/sound-library/" target="_blank">サウンドライブラリ</a>からサウンドクリップを使用します。</p>
+<p>&#34;favorite color&#34; レスポンスにサウンドエフェクトを追加するには、以下を行います:</p>
+<ol type="1" start="1">
+<li><code>index.js</code> ファイルをエディタで開きます。</li>
+<li>以下のコードを置き換えます。</li>
+</ol>
+<pre><code>app.intent(&#39;favorite color&#39;, (conv, { color }) =&gt; {
+  const luckyNumber = color.length;
+  if (conv.data.userName) {
+    conv.close(`${conv.data.userName}, your lucky number is ` + `${luckyNumber}.`);
+  } else {
+    conv.close(`Your lucky number is ` + `${luckyNumber}.`);
+  }
+});</code></pre>
+<p>以下に置き換えます。</p>
+<h3><a href="https://github.com/actions-on-google/codelabs-nodejs/blob/master/level2-complete/functions/index.js" target="_blank">index.js</a></h3>
+<pre><code>// Handle the Dialogflow intent named &#39;favorite color&#39;.
+// The intent collects a parameter named &#39;color&#39;
+app.intent(&#39;favorite color&#39;, (conv, {color}) =&gt; {
+ const luckyNumber = color.length;
+ const audioSound = &#39;https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg&#39;;
+ if (conv.data.userName) {
+   // If we collected user name previously, address them by name and use SSML
+   // to embed an audio snippet in the response.
+   conv.close(`&lt;speak&gt;${conv.data.userName}, your lucky number is ` +
+     `${luckyNumber}&lt;audio src=&#34;${audioSound}&#34;&gt;&lt;/audio&gt;.&lt;/speak&gt;`);
+ } else {
+   conv.close(`&lt;speak&gt;Your lucky number is ${luckyNumber}` +
+     `&lt;audio src=&#34;${audioSound}&#34;&gt;&lt;/audio&gt;.&lt;/speak&gt;`);
+ }
+});</code></pre>
+<p>ここでは、ウェブ上の静的にホストされたオーディオファイルのURL文字列を含む <code>audioSound</code> 変数を宣言します。ユーザーの応答の文字列を <code>&lt;speak&gt;</code> SSMLタグを使用して囲むことで、応答がSSMLとして解析されるようにGoogle Assistantに指示します。</p>
+<p>文字列に埋め込まれた <code>&lt;audio&gt;</code> タグは、あなたがアシスタントに応答内で何らかのオーディをを再生したいポイントを示します。そのタグの <code>src</code> 属性は、オーディオがどこにホストされているかを示します。</p>
+<ol type="1" start="3">
+<li>ファイルを保存します。</li>
+<li>ターミナル内で、Firebase に Webhook をデプロイするために、以下のコマンドを実行します。</li>
+</ol>
+<pre><code>firebase deploy</code></pre>
+<h2><strong>コードをテストする</strong></h2>
+<aside class="special"><p><strong>Tip:</strong> この<a href="https://developers.google.com/actions/tools/simulator" target="_blank">ガイド</a>では、Actions Console simulatorの利用に関する最新情報を確認できます。以下の手順を行った際に問題が発生した場合は、こちらを参照してください。</p>
+</aside>
+<p>Actions console simulator にてアクションをテストするために、以下を行います:</p>
+<ol type="1" start="1">
+<li>Input フィールドにて &#34;Talk to my test app&#34; とタイプして、Enter キーを押します。</li>
+<li>&#34;yes&#34; とタイプします。</li>
+<li>&#34;blue&#34; とタイプします。もし全てが正しく動作すれば、ユーザは応答内で<a href="https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg" target="_blank">サウンドエフェクト</a>を聞くはずです。</li>
+</ol>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Add follow-up intents" duration="5">
+        <p>会話を続けるために、特定のインテントの後にユーザーの応答に基づいてトリガーするフォローアップインテントを追加することができます。&#34;favorite color&#34; のフォローアップインテントを追加するには、次のようにします。</p>
+<ol type="1" start="1">
+<li><a href="https://console.dialogflow.com/" target="_blank">Dialogflow Console</a> の左のナビゲーションにて、<strong>Intents</strong> をクリックします。</li>
+<li><strong>favorite color</strong> の上でカーソルをホバーし、その後 <strong>Add follow-up intent</strong> をクリックします。これを2回行います。一度 <strong>yes</strong> を選択して、もう一度 <strong>no</strong> を選択します。</li>
+</ol>
+<aside class="special"><p><strong>Tip:</strong> 両方のフォローアップインテントが親として <strong>favorite color</strong> インテントで設定されていることを確認してください。誤って1つ目のフォローアップとして作成してしまいがちです。</p>
+</aside>
+<ol type="1" start="3">
+<li><strong>favorite color - no</strong> にて、以下を行います:</li>
+</ol>
+<ul>
+<li><strong>Responses</strong> にて、<strong> Text response </strong>として &#34;Goodbye, see you next time!&#34; を追加します。</li>
+<li><strong>Set this intent as end of conversation</strong> を有効にします。</li>
+<li><strong>Save</strong> をクリックします。</li>
+</ul>
+<ol type="1" start="4">
+<li><strong>favorite color - yes</strong> にて、以下を行います:</li>
+</ol>
+<ul>
+<li><strong>Responses</strong> にて、<strong> Text response </strong>として &#34;Which color, indigo taco, pink unicorn or blue grey coffee?&#34; を追加します。</li>
+<li><strong>Save</strong> をクリックします。</li>
+</ul>
+<p><img style="max-width: 624.00px" src="img/dfe06d48157e5f1e.png"></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Add a custom entity" duration="5">
+        <p>会話型アプリを拡張するとき、あなたは<a href="https://dialogflow.com/docs/entities#developer_entities" target="_blank">カスタムエンティティ</a>を使用して会話をさらに深めて、会話をパーソナライズすることができます。このセクションでは、これを行う方法について説明します。</p>
+<h2><strong>カスタムエンティティを追加する</strong></h2>
+<p>これまでは、組み込みのエンティティ（<code>@sys.color</code>、<code>@sys.any</code>）を使用してユーザー入力を照合してきました。 Dialogflow でカスタムエンティティ（<em>開発者エンティティ</em>とも呼ばれる）を作成して、ユーザーがいくつかの偽の色のうちの1つを提供したときに、Webhook のカスタム応答をフォローアップすることができます。</p>
+<p>カスタムエンティティを作成するには、以下を行います:</p>
+<ol type="1" start="1">
+<li><a href="https://console.dialogflow.com/" target="_blank">Dialogflow Console</a> の左のナビゲーションにて、 <strong>Entities</strong> をクリックします。</li>
+<li><strong>Create entity</strong> をクリックして、&#34;fakeColor&#34; と名付けます。</li>
+<li>以下のエンティティとシノニムを追加して、<strong>Save</strong> をクリックします:</li>
+</ol>
+<ul>
+<li><em>indigo taco / the first one</em></li>
+<li><em>pink unicorn / the second one</em></li>
+<li><em>blue grey coffee / the third one</em></li>
+</ul>
+<p><img style="max-width: 617.00px" src="img/83bfe9d851c08d65.png"></p>
+<ol type="1" start="4">
+<li>左のナビゲーションにて、 <strong>Intents</strong> をクリックします。</li>
+<li><strong>Create intent</strong> をクリックして、&#34;favorite fake color&#34; と名付けます。</li>
+</ol>
+<aside class="special"><p><strong>Tip:</strong> インテント名は大文字小文字が区別されます。あなたの Webhook 内で参照される時は、それが Dialogflow Console で指定した通りかどうかを確認してください。</p>
+</aside>
+<ol type="1" start="6">
+<li><strong>Training phrases</strong> にて、以下をタイプします:</li>
+</ol>
+<ul>
+<li>&#34;indigo taco&#34;,</li>
+<li>&#34;tell me about pink unicorn&#34;</li>
+<li>&#34;i want to know about blue grey coffee&#34;.</li>
+</ul>
+<p>Dialogflow がカスタムエンティティを認識するようになったので、<strong>Actions and parameters</strong> にて &#34;fakeColor&#34; パラメータが表示されるはずです。</p>
+<ol type="1" start="7">
+<li><strong>Fulfillment</strong> にて、 <strong>Enable webhook call for this intent</strong> を有効にします。</li>
+<li><strong>Save</strong> をクリックします。</li>
+</ol>
+<p>あなたが定義した偽の色の一つをユーザが選択すると、あなたの Webhook はそれぞれの色を表示する <a href="https://developers.google.com/actions/assistant/responses#basic_card" target="_blank">basic card</a> を応答するでしょう。</p>
+<p>あなたの Webhook を以下のようにして設定します:</p>
+<ol type="1" start="1">
+<li>あなたのデバイス上で、 <code>/level2/functions</code> フォルダに移動し、エディタで <code>index.js</code> を開きます。</li>
+<li>このコードを置き換えます。</li>
+</ol>
+<pre><code>const {
+  dialogflow,
+  Permission,
+} = require(&#39;actions-on-google&#39;);</code></pre>
+<p>これに置き換えます。</p>
+<h3><a href="https://github.com/actions-on-google/codelabs-nodejs/blob/master/level2-complete/functions/index.js" target="_blank">index.js</a></h3>
+<pre><code>// Import the Dialogflow module and response creation dependencies
+// from the Actions on Google client library.
+const {
+  dialogflow,
+  BasicCard,
+  Permission,
+} = require(&#39;actions-on-google&#39;);</code></pre>
+<ol type="1" start="3">
+<li>このコードを置き換えます。</li>
+</ol>
+<pre><code>app.intent(&#39;favorite color&#39;, (conv, {color}) =&gt; {
+ const luckyNumber = color.length;
+ const audioSound = &#39;https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg&#39;;
+ if (conv.data.userName) {
+   // If we collected user name previously, address them by name and use SSML
+   // to embed an audio snippet in the response.
+   conv.close(`&lt;speak&gt;${conv.data.userName}, your lucky number is ` +
+     `${luckyNumber}&lt;audio src=&#34;${audioSound}&#34;&gt;&lt;/audio&gt;.`);
+ } else {
+   conv.close(`&lt;speak&gt;Your lucky number is ${luckyNumber}` +
+     `&lt;audio src=&#34;${audioSound}&#34;&gt;&lt;/audio&gt;.`);
+ }
+});</code></pre>
+<p>これに置き換えます。</p>
+<h3><a href="https://github.com/actions-on-google/codelabs-nodejs/blob/master/level2-complete/functions/index.js" target="_blank">index.js</a></h3>
+<pre><code>// Handle the Dialogflow intent named &#39;favorite color&#39;.
+// The intent collects a parameter named &#39;color&#39;.
+app.intent(&#39;favorite color&#39;, (conv, {color}) =&gt; {
+ const luckyNumber = color.length;
+ const audioSound = &#39;https://actions.google.com/sounds/v1/cartoon/clang_and_wobble.ogg&#39;;
+ if (conv.data.userName) {
+   // If we collected user name previously, address them by name and use SSML
+   // to embed an audio snippet in the response.
+   conv.ask(`&lt;speak&gt;${conv.data.userName}, your lucky number is ` +
+     `${luckyNumber}.&lt;audio src=&#34;${audioSound}&#34;&gt;&lt;/audio&gt;` +
+     `Would you like to hear some fake colors?&lt;/speak&gt;`);
+ } else {
+   conv.ask(`&lt;speak&gt;Your lucky number is ${luckyNumber}.` +
+     `&lt;audio src=&#34;${audioSound}&#34;&gt;&lt;/audio&gt;` +
+     `Would you like to hear some fake colors?&lt;/speak&gt;`);
+ }
+});</code></pre>
+<ol type="1" start="4">
+<li>以下のコードを、ファイルの末尾に追加します。</li>
+</ol>
+<h3><a href="https://github.com/actions-on-google/codelabs-nodejs/blob/master/level2-complete/functions/index.js" target="_blank">index.js</a></h3>
+<pre><code>// Define a mapping of fake color strings to basic card objects.
+const colorMap = {
+&#39;indigo taco&#39;: new BasicCard({
+  title: &#39;Indigo Taco&#39;,
+  image: {
+    url: &#39;https://storage.googleapis.com/material-design/publish/material_v_12/assets/0BxFyKV4eeNjDN1JRbF9ZMHZsa1k/style-color-uiapplication-palette1.png&#39;,
+    accessibilityText: &#39;Indigo Taco Color&#39;,
+  },
+  display: &#39;WHITE&#39;,
+}),
+&#39;pink unicorn&#39;: new BasicCard({
+  title: &#39;Pink Unicorn&#39;,
+  image: {
+    url: &#39;https://storage.googleapis.com/material-design/publish/material_v_12/assets/0BxFyKV4eeNjDbFVfTXpoaEE5Vzg/style-color-uiapplication-palette2.png&#39;,
+    accessibilityText: &#39;Pink Unicorn Color&#39;,
+  },
+  display: &#39;WHITE&#39;,
+}),
+&#39;blue grey coffee&#39;: new BasicCard({
+  title: &#39;Blue Grey Coffee&#39;,
+  image: {
+    url: &#39;https://storage.googleapis.com/material-design/publish/material_v_12/assets/0BxFyKV4eeNjDZUdpeURtaTUwLUk/style-color-colorsystem-gray-secondary-161116.png&#39;,
+    accessibilityText: &#39;Blue Grey Coffee Color&#39;,
+  },
+  display: &#39;WHITE&#39;,
+}),
+};
+
+app.intent(&#39;favorite fake color&#39;, (conv, {fakeColor}) =&gt; {
+  conv.close(`Here&#39;s the color`, colorMap[fakeColor]);
+});</code></pre>
+<p>この新しいコードは、主に2つのタスクを実行します:</p>
+<p>まず、カラー文字列（例えば、&#34;indigo taco&#34;、&#34;pink unicorn&#34;、&#34;blue grey coffee&#34;）のマッピング（<code>colorMap</code>）を <code>BasicCard</code> オブジェクトに設定します。 <code>BasicCard</code> は、 <a href="https://developers.google.com/actions/assistant/responses#basic_card" target="_blank">basic card</a> タイプに対応する視覚的応答を構築するためのクライアントライブラリクラスです。</p>
+<p>コンストラクタ呼び出しでは、次のようなそれぞれの特定の色に関連する構成オプションを渡します:</p>
+<ul>
+<li>色の名前を持つタイトル。</li>
+<li>色を表現する画像のURLと、その代替テキスト。</li>
+<li>背景色を決定する &#34;display&#34; 設定（この場合、無地の白）。</li>
+</ul>
+<p>最後に、ユーザーが選択した <code>fakeColor</code> オプションを使用して、その偽の色に対応するカードを作成してユーザーに提示する &#34;favorite fake color&#34; インテントのコールバック関数を設定します。</p>
+<ol type="1" start="5">
+<li>ターミナル内で、Firebase に Webhook をデプロイするために、以下のコマンドを実行します。</li>
+</ol>
+<pre><code>firebase deploy</code></pre>
+<h2><strong>コードをテストする</strong></h2>
+<aside class="special"><p><strong>Tip:</strong> この<a href="https://developers.google.com/actions/tools/simulator" target="_blank">ガイド</a>では、Actions Console simulatorの利用に関する最新情報を確認できます。以下の手順を行った際に問題が発生した場合は、こちらを参照してください。</p>
+</aside>
+<p>Actions console simulator にてアクションをテストするために、以下を行います:</p>
+<ol type="1" start="1">
+<li>Input フィールドにて &#34;Talk to my test app&#34; とタイプして、Enter キーを押します。</li>
+<li>&#34;yes&#34; とタイプします。</li>
+<li>&#34;blue&#34; とタイプします。</li>
+<li>&#34;sure&#34; とタイプします。</li>
+<li>&#34;Tell me about the first one&#34; とタイプします。</li>
+</ol>
+<p>偽の色を選択すると、図2のような basic card を含む応答を受け取るはずです。</p>
+<p><img style="max-width: 624.00px" src="img/75d04414b860b562.png"></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Next steps" duration="1">
+        <p><strong>おめでとうございます！</strong></p>
+<p>あなたは、Actions on Google を使って、会話型ユーザインターフェースを構築するために必要な中級レベルのスキルを身につけました。</p>
+<h2 class="checklist"><strong>What we&#39;ve covered</strong></h2>
+<ul class="checklist">
+<li>Node.js クライアントライブラリを使ったローカルでのフルフィルメント開発のセットアップ方法、および Firebase コマンドラインでのデプロイ方法。</li>
+<li>Dialogflow における Google Assistant integration を使ったアクションへのディープリンクの作成方法。</li>
+<li>応答をパーソナライズするための Actions on Google ヘルパーインテントの使用方法。</li>
+<li>Dialogflow カスタムエンティティ、SSML ベースのオーディオエフェクト、そしてフォローアップインテントの追加方法。</li>
+</ul>
+<h2><strong>次は何ですか？</strong></h2>
+<p>Actions on Googleについて学ぶために、以下のリソースについても参考にすることができます:</p>
+<ul>
+<li><a href="http://actions.google.com/" target="_blank">actions.google.com</a>: Actions on Googleの公式ドキュメントサイトです。</li>
+<li><a href="https://github.com/actions-on-google/" target="_blank">Actions on Google GitHub repo</a>: サンプルコードとライブラリがあります。</li>
+<li><a href="https://dialogflow.com/" target="_blank">Dialogflow.com</a>: Dialogflowの公式ドキュメントサイトです。</li>
+<li><a href="https://plus.google.com/communities/105684267327487893574" target="_blank">Actions on Google Developers</a>: Actions on Google を使っている開発者向けの公式な Google+ コミュニティです。</li>
+</ul>
+<p>Twitter <a href="https://twitter.com/ActionsOnGoogle" target="_blank">@ActionsOnGoogle</a> で最新のアナウンスに耳を傾け、 <a href="https://twitter.com/hashtag/AoGDevs?src=hash" target="_blank">#AoGDevs</a> にツイートしてあなたが作ったものを共有しましょう！</p>
+<h2><strong>Feedback survey</strong></h2>
+<p>次に進む前に、私たちに<a href="https://goo.gl/forms/SLcedXyVSNl7RkUc2" target="_blank">このフォーム</a>からフィードバックをいただければと思います。</p>
+
+
+      </google-codelab-step>
+    
+  </google-codelab>
+
+  <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-49880327-14', 'auto');
+
+    (function() {
+      var gaCodelab = '';
+      if (gaCodelab) {
+        ga('create', gaCodelab, 'auto', {name: 'codelab'});
+      }
+
+      var gaView;
+      var parts = location.search.substring(1).split('&');
+      for (var i = 0; i < parts.length; i++) {
+        var param = parts[i].split('=');
+        if (param[0] === 'viewga') {
+          gaView = param[1];
+          break;
+        }
+      }
+      if (gaView && gaView !== gaCodelab) {
+        ga('create', gaView, 'auto', {name: 'view'});
+      }
+    })();
+  </script>
+
+</body>
+</html>

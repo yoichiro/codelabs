@@ -1,0 +1,886 @@
+
+<!doctype html>
+
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <meta name="theme-color" content="#4F7DC9">
+  <meta charset="UTF-8">
+  <title>Build Actions for Google Assistant with Daily Updates / Push Notifications</title>
+  <script src="./bower_components/webcomponentsjs/webcomponents-lite.js"></script>
+  <link rel="import" href="./elements/codelab.html">
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro:400|Roboto:400,300,400italic,500,700|Roboto+Mono">
+  <style is="custom-style">
+    body {
+      font-family: "Roboto",sans-serif;
+      background: var(--google-codelab-background, #F8F9FA);
+    }
+  </style>
+  
+</head>
+<body unresolved class="fullbleed">
+
+  <google-codelab title="Build Actions for Google Assistant with Daily Updates / Push Notifications"
+                  environment="web"
+                  feedback-link="">
+    
+      <google-codelab-step label="Overview" duration="2">
+        <p>Actions on Google is a developer platform that lets you create software to extend the functionality of the <a href="https://assistant.google.com/" target="_blank">Google Assistant</a>, Google&#39;s virtual personal assistant, across more than 500 million devices, including smart speakers, phones, cars, TVs, headphones, and more.</p>
+<p>Users engage Google Assistant in conversation to get things done, like buying groceries or booking a ride. (For a complete list of what&#39;s possible now, see the <a href="https://assistant.google.com/explore/" target="_blank">Actions directory</a>.) As a developer, you can use Actions on Google to easily create and manage delightful and effective conversational experiences between users and your own 3rd-party fulfillment service.</p>
+<p>In this codelab, you build a basic action with Actions on Google. Also, you add more rich experience with Daily Updates and Push Notifications features.</p>
+<p>We don&#39;t describe a detail for developing basic actions with Actions on Google and Dialogflow in this codelab. If you want to know how to build a general action, see <a href="https://codelabs.developers.google.com/codelabs/actions-1-ja/#0" target="_blank">Build Actions for the Google Assistant (Level 1)</a> and <a href="https://codelabs.developers.google.com/codelabs/actions-2-ja/index.html#0" target="_blank">Build Actions for the Google Assistant (Level 2)</a>.</p>
+<h2><strong>What you&#39;ll build</strong></h2>
+<p>In this codelab, you&#39;ll build a simple conversational Action with these features:</p>
+<ul>
+<li>Users can start a conversation by explicitly calling your Action by name.</li>
+<li>Once in conversation, the user asks your Action about news recently or of specified date. Your Action reads news which are matched by the specified condition.</li>
+<li>When the user asks your Action &#34;Send me news everyday&#34;, your Action calls Daily Updates feature. Then, Google Assistant asks when the user wants to receive recent news. If the user replies to Google Assistant about an expected time, the notification registration is completed and the conversation is closed.</li>
+<li>When the user asks your Action &#34;Send me latest news soon&#34;, your Action calls Push Notifications feature. Google Assistant asks the user to allow sending notifications. If the user allows it, the notification registration is completed and the conversation is closed.</li>
+<li>Write a code to send Push Notification to users, and actually send notifications.</li>
+</ul>
+<p><img style="max-width: 602.00px" src="img/86f2c61fb22b180b.png"></p>
+<h2 class="checklist"><strong>What you&#39;ll learn</strong></h2>
+<ul class="checklist">
+<li>How to use Daily Updates feature to send notifications daily.</li>
+<li>How to use Push Notifications feature to send notifications in real time.</li>
+</ul>
+<h2><strong>What you&#39;ll need</strong></h2>
+<p>The following tools must be in your environment:</p>
+<ul>
+<li><a href="https://www.google.com/chrome/" target="_blank">Chrome</a> Web browser.</li>
+<li>Android device, or iPhone device that has <a href="https://itunes.apple.com/jp/app/google-%E3%82%A2%E3%82%B7%E3%82%B9%E3%82%BF%E3%83%B3%E3%83%88/id1220976145?mt=8" target="_blank">Google Assistant app</a>.</li>
+<li>NodeJS that the latest version of 6, 8 or 10.</li>
+<li>Terminal to execute shell scripts with installed NodeJS and npm.</li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Design a conversation" duration="4">
+        <p>First, let&#39;s prepare a base action, before we describe Daily Updates and Push Notifications features. In this codelab, you build your action called &#34;Daily News&#34;. This Daily News action provides the following features:</p>
+<ul>
+<li>When a user invokes your action, the action asks the user a date of news when the user wants to know.</li>
+<li>If the user says &#34;Recent News&#34;, the action tells the user news published within 24 hours.</li>
+<li>If the user says &#34;Today&#39;s news&#34; or &#34;News on September 22&#34;, which the phrases have certain date, the action tells the user news published on the specified date.</li>
+<li>If the user says &#34;Latest news&#34;, the action tells one news published at most recently.</li>
+<li>The user can close the conversation anytime by when the user says phrases like &#34;Goodbye&#34;.</li>
+</ul>
+<p>For example, we image the conversation like the following. Of course, this dialog is not enough as a news service, but this is enough for the sample of this codelab.</p>
+<p><img style="max-width: 355.50px" src="img/4132a5e5c42dc329.png"></p>
+<p>This conversation consists of phrases by turns between the user and the action. In this codelab, we will support notifications for the following askings later:</p>
+<ul>
+<li>When the user says &#34;Recent news&#34;, your action registers sending notifications at specific time everyday with Daily Updates.</li>
+<li>When the user says &#34;Latest news&#34;, your action sends a notification in real time with Push Notifications.</li>
+</ul>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Setup a project" duration="9">
+        <p>You create Actions by creating an Actions project and defining two things for each action: the intent and the fulfillment.</p>
+<aside class="special"><p><strong>Key terms for Actions on Google:</strong></p>
+<ul>
+<li><strong>Actions project</strong>: A project you create to manage, test, and publish a collection of Actions; Google maintains your Actions project in a cloud backend.</li>
+<li><strong>Actions Console</strong>: A web-based tool that Google provides to simplify your Actions development; you can create, maintain, test, and publish your Actions using the console.</li>
+</ul>
+</aside>
+<p>This section of the codelab describes how you setup your Actions project in the Actions Console.</p>
+<h2><strong>Check your Google permission settings</strong></h2>
+<p>In order to test the Action that you&#39;ll build for this codelab, you need to enable the necessary permissions.</p>
+<ol type="1" start="1">
+<li>Go to the ‘Activity Controls&#39; page (<a href="https://myaccount.google.com/activitycontrols" target="_blank">https://myaccount.google.com/activitycontrols</a>).</li>
+<li>Sign in with your Google account, if you have not already done so.</li>
+<li>Ensure that the following permissions are enabled:</li>
+</ol>
+<ul>
+<li>Web &amp; App Activity</li>
+<li>Device Information</li>
+<li>Voice &amp; Audio Activity</li>
+</ul>
+<h2><strong>Create an Actions project</strong></h2>
+<p>Actions projects are containers for your Action(s) with the metadata (name, description, category) that becomes your <a href="https://assistant.google.com/explore" target="_blank">Actions directory</a> listing.</p>
+<p>To start building Actions, you&#39;ll first need to create an Actions project as follows:</p>
+<ol type="1" start="1">
+<li>Open the <a href="https://console.actions.google.com/" target="_blank">Actions Console</a>.</li>
+<li>Click on <strong>Add/import project</strong>.</li>
+<li>Type in a Project name, like &#34;daily-news-codelab&#34;. This name is for your own internal reference; later on, you can set an external name for your project.</li>
+</ol>
+<p><img style="max-width: 602.00px" src="img/de35367cb4365b71.png"></p>
+<ol type="1" start="4">
+<li>Click <strong>Create Project</strong>.</li>
+<li>Rather than pick a category, click <strong>Skip</strong> on the upper-right corner.</li>
+</ol>
+<p><img style="max-width: 602.00px" src="img/108b2a42e0be50ef.png"></p>
+<ol type="1" start="6">
+<li>Click <strong>Build &gt; Actions</strong> in the left nav.</li>
+<li>Click <strong>Add your first Action</strong>.</li>
+<li>On the Create Action dialog, select <strong>Custom Intent</strong> and click <strong>Build</strong>. This will open the Dialogflow Console in another tab.</li>
+</ol>
+<p><img style="max-width: 602.00px" src="img/dfb2632da74c4e7e.png"></p>
+<h2><strong>Create a Dialogflow agent</strong></h2>
+<p>Now that you&#39;ve built your Actions project, create a Dialogflow agent and associate it with your project:</p>
+<ol type="1" start="1">
+<li>After following the steps above, you should already be in the Dialogflow Console with your Actions project name at the top. You may need to authorize Dialogflow to use your Google account, and accept the Terms of Service.</li>
+</ol>
+<aside class="warning"><p>Not in the Dialogflow Console? Make sure you&#39;ve completed all the steps in the ‘Create an Actions Project&#39; section. Still don&#39;t see it? Then you can navigate to the Dialogflow Console and select <strong>Create new agent</strong> in the left navigation.</p>
+</aside>
+<ol type="1" start="2">
+<li>Check the selected <strong>DEFAULT TIME ZONE</strong> and modify it if necessary. Click <strong>Create</strong>.</li>
+</ol>
+<p><img style="max-width: 602.00px" src="img/d153256ebcfbb4aa.png"></p>
+<p>If the agent creation is successful, you will be in the <strong>Intents</strong> page. You can now begin customizing how your Dialogflow agent responds to user requests.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Create a conversation" duration="15">
+        <p>Now, let&#39;s define a conversation with the Dialogflow agent you created in the previous section. In this codelab, the Daily News action consists of the following defined intents:</p>
+<ul>
+<li>&#34;Default Welcome Intent&#34; - The welcome intent invoked at starting a conversation.</li>
+<li>&#34;Quit&#34; - The intent to close the conversation.</li>
+<li>&#34;Recent News&#34; - The intent to ask the recent (within 24 hours) news.</li>
+<li>&#34;Past News&#34; - The intent to ask the news of specific date.</li>
+<li>&#34;Latest News&#34; - The intent to ask the latest news.</li>
+</ul>
+<h2><strong>Modify the Welcome intent</strong></h2>
+<p>All Actions projects need a welcome intent as the entry point to start a conversation by users. The welcome intent is triggered when the user explicitly invokes the action by saying the action name.</p>
+<p>As default, Dialogflow creates the welcome intent for us. In this codelab, we modify the welcome intent which is triggered when the user says &#34;Talk to my test app&#34;.</p>
+<p>Modify the welcome intent according to the following steps:</p>
+<ol type="1" start="1">
+<li>On the <strong>Intents</strong> page of Dialogflow Console, click <strong>Default Welcome Intent</strong>.</li>
+</ol>
+<p><img style="max-width: 602.00px" src="img/e661f98d78b1eae7.png"></p>
+<ol type="1" start="2">
+<li>Click <strong>Fulfillment</strong> on the bottom of the page, then the UI to configure your fulfillment is opened. And, turn on <strong>Enable webhook call for this intent</strong>.</li>
+</ol>
+<p><img style="max-width: 602.00px" src="img/408aae3010e10dfc.png"></p>
+<aside class="special"><p><strong>Tip: </strong>By turning on the <strong>Enable webhook call for this intent</strong>,  the fulfillment determines responses to users after the intent invoked.</p>
+</aside>
+<ol type="1" start="3">
+<li>Click <strong>SAVE</strong> button on the top of the page to save the modifications.</li>
+</ol>
+<h2><strong>Create Quit intent</strong></h2>
+<p>Next, you need to create Quit intent so that users want to close a conversation. Do the following steps on the Dialogflow console:</p>
+<ol type="1" start="1">
+<li>Click <strong>+</strong> icon. This icon is on the right of the <strong>Intents</strong> menu item on the left navigation menu.</li>
+</ol>
+<p><img style="max-width: 602.00px" src="img/457d2b19faf83597.png"></p>
+<ol type="1" start="2">
+<li>Fill in &#34;Quit&#34; to the <strong>Intent name</strong>.</li>
+<li>Fill in &#34;Goodbye&#34; to the <strong>Training phrases</strong>, and press ENTER key<strong>.</strong></li>
+<li>Fill in &#34;See you again&#34; to the <strong>Text Response</strong> on the <strong>Responses</strong>, then press ENTER key. And, turn on <strong>Set this intent as end of conversation</strong>.</li>
+</ol>
+<p><img style="max-width: 602.00px" src="img/c13dba2d8f03ea93.png"></p>
+<aside class="special"><p><strong>Tip:</strong> In the Quit intent, we turned on the <strong>Set this intent as end of conversation</strong> to close the conversation which involves saying &#34;See you again&#34; without calling the fulfillment.</p>
+</aside>
+<ol type="1" start="5">
+<li>Click <strong>SAVE</strong> button on the top of the page to save the modifications.</li>
+</ol>
+<h2><strong>Create Recent News intent</strong></h2>
+<p>Let&#39;s get started to create intents to specify a condition users expect. First, we create Recent News intent to ask recent (within 24 hours) news. Do the following steps on the Dialogflow:</p>
+<ol type="1" start="1">
+<li>Click <strong>+</strong> icon. This icon is on the right of the <strong>Intents</strong> menu item on the left navigation menu.</li>
+<li>Fill in &#34;Recent News&#34; to the <strong>Intent name</strong>.</li>
+<li>Fill in the following phrases on the <strong>Training phrases</strong>:</li>
+</ol>
+<ul>
+<li>&#34;Recent&#34;</li>
+<li>&#34;Recent news&#34;</li>
+<li>&#34;Want to hear the recent news&#34;</li>
+<li>&#34;Want to know the recent news&#34;</li>
+</ul>
+<p><img style="max-width: 602.00px" src="img/a0c6bb92300cef18.png"></p>
+<ol type="1" start="4">
+<li>Click <strong>Fulfillment</strong> on the bottom of the page, then the UI to configure your fulfillment is opened. And, turn on <strong>Enable webhook call for this intent</strong>.</li>
+<li>Click <strong>SAVE</strong> button on the top of the page to save the modifications.</li>
+</ol>
+<h2><strong>Create Past News intent</strong></h2>
+<p>Next, create Past News intent to ask news of the specific date by the user. Do the following steps on the Dialogflow:</p>
+<ol type="1" start="1">
+<li>Click <strong>+</strong> icon. This icon is on the right of the <strong>Intents</strong> menu item on the left navigation menu.</li>
+<li>Fill in &#34;Past News&#34; to the <strong>Intent name</strong>.</li>
+<li>Fill in  &#34;Today&#39;s news&#34; to the <strong>Training phrases</strong>, and press ENTER key<strong>.</strong></li>
+</ol>
+<p>By doing them, Dialogflow recognizes automatically that the &#34;Today&#34; word means a date. Also, the <code>date</code> parameter that the type is @sys.date (this is a system entity and represents a date) is assigned.</p>
+<p><img style="max-width: 602.00px" src="img/f23ab0eb7d61ef6e.png"></p>
+<aside class="special"><p><strong>Key terms:</strong></p>
+<ul>
+<li><strong>Entities (Dialogflow)</strong>: Represents a category of things. Dialogflow comes with a catalog of System Entities (for example, &#34;color&#34; and &#34;date&#34; are entities that Dialogflow &#34;knows about&#34;), but developers can define Custom Entities for domain-specific words and phrases. Dialogflow uses entities for extracting parameter values from natural language inputs.</li>
+</ul>
+</aside>
+<ol type="1" start="4">
+<li>Add the following phrases to the <strong>Training phrases</strong> in addition of the &#34;Today&#39;s news&#34;.</li>
+</ol>
+<ul>
+<li>&#34;Today&#34;</li>
+<li>&#34;Tell me today&#39;s news&#34;</li>
+<li>&#34;Want to know today&#39;s news&#34;</li>
+</ul>
+<ol type="1" start="5">
+<li>Click <strong>Fulfillment</strong> on the bottom of the page, then the UI to configure your fulfillment is opened. And, turn on <strong>Enable webhook call for this intent</strong>.</li>
+<li>Click <strong>SAVE</strong> button on the top of the page to save the modifications.</li>
+</ol>
+<h2><strong>Create Latest News intent</strong></h2>
+<p>Last, create Latest News intent to ask a latest news. Do the following steps on Dialogflow:</p>
+<ol type="1" start="1">
+<li>Click <strong>+</strong> icon. This icon is on the right of the <strong>Intents</strong> menu item on the left navigation menu.</li>
+<li>Fill in &#34;Latest News&#34; to the <strong>Intent name</strong>.</li>
+<li>Fill in the following phrases on the <strong>Training phrases</strong>:</li>
+</ol>
+<ul>
+<li>&#34;Latest news&#34;</li>
+<li>&#34;Latest&#34;</li>
+</ul>
+<p><img style="max-width: 602.00px" src="img/7b0cd2ee5e717de5.png"></p>
+<ol type="1" start="4">
+<li>Click <strong>Fulfillment</strong> on the bottom of the page, then the UI to configure your fulfillment is opened. And, turn on <strong>Enable webhook call for this intent</strong>.</li>
+<li>Click <strong>SAVE</strong> button on the top of the page to save the modifications.</li>
+</ol>
+<p>That&#39;s all of creating basic intents for Daily News action. But, you cannot talk with the Daily News action yet.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Write a fulfillment code" duration="15">
+        <p>In the previous section, we created some intents. Most intents call your fulfillment, because you turned on the flag for most intents. Here, we create a fulfillment code.</p>
+<h2><strong>Build your fulfillment</strong></h2>
+<p>A fulfillment is a program code invoked by webhook. We&#39;ll use the Dialogflow Console&#39;s <a href="https://dialogflow.com/docs/how-tos/getting-started-fulfillment" target="_blank">Inline Editor</a> to build and deploy the webhook. To build a webhook for your Action, do the following:</p>
+<ol type="1" start="1">
+<li>In the left navigation, click on <strong>Fulfillment</strong>.</li>
+<li>Toggle <strong>Inline Editor</strong> to enabled.</li>
+</ol>
+<p><img style="max-width: 602.00px" src="img/e9e61c9fe1c593e9.png"></p>
+<ol type="1" start="3">
+<li>Confirm that the <strong>index.js</strong> file is selected. Then, replace the code in the inline editor with the following:</li>
+</ol>
+<h3><strong>index.js</strong></h3>
+<pre><code>&#34;use strict&#34;;
+
+const functions = require(&#34;firebase-functions&#34;);
+const {
+    dialogflow,
+    Suggestions,
+    RegisterUpdate,
+    UpdatePermission
+} = require(&#34;actions-on-google&#34;);
+
+// Prepare SDK usage
+const app = dialogflow({
+    debug: true
+});
+
+// &#34;Default Welcome Intent&#34; intent handler function
+
+// The function to provide news of specific time span
+
+// The function to reply
+
+// &#34;Recent News&#34; intent handler
+
+// &#34;Past News&#34; intent handler
+
+// &#34;Latest News&#34; intent handler
+
+// &#34;Setup Daily Updates&#34; intent handler
+
+// &#34;Finish Daily Updates Setup&#34; intent handler
+
+// &#34;Setup Push Notifications&#34; intent handler
+
+// &#34;Finish Push Notifications Setup&#34; intent handler
+
+// Register SDK as Firebase Functions
+exports.dialogflowFirebaseFulfillment = functions.https.onRequest(app);</code></pre>
+<ol type="1" start="4">
+<li>Click <strong>Deploy</strong>. It will take a few minutes for deploying your Webhook code by Dialogflow on this page. If the code is successfully deployed, you will see that the &#34;Last deployed&#34; timestamp was replaced next to the Deploy button.</li>
+</ol>
+<h2><strong>Understand the code</strong></h2>
+<p>The code for the webhook is implemented in <a href="https://www.javascript.com/" target="_blank">JavaScript</a>. When you use Dialogflow&#39;s inline editor, it deploys your webhook code on a managed environment in the cloud using <a href="https://firebase.google.com/docs/functions/" target="_blank">Cloud Functions for Firebase</a>.</p>
+<p>The webhook code uses the <a href="https://github.com/actions-on-google/actions-on-google-nodejs" target="_blank">Actions on Google Node.js client library</a> to respond to HTTP requests that the Assistant sends to your webhook. The library allows you to create a <a href="https://actions-on-google.github.io/actions-on-google-nodejs/interfaces/dialogflow.dialogflowapp.html" target="_blank"><code>DialogflowApp</code></a> object, which acts as a wrapper for the Dialogflow API.</p>
+<p>In this case, an <code>app</code> variable of the <code>DialogflowApp</code> object type is created.</p>
+<h2><strong>Create &#34;Default Welcome Intent&#34; intent handler function</strong></h2>
+<p>Add the following code into the <strong>index.js</strong> file. The place you should add the code is below the comment:</p>
+<h3><strong>&#34;Default Welcome Intent&#34; intent handler function</strong></h3>
+<pre><code>// &#34;Default Welcome Intent&#34; intent handler function
+app.intent(&#34;Default Welcome Intent&#34;, conv =&gt; {
+    conv.ask(&#34;I tell you daily news. When do you want to know the news?&#34;);
+    conv.ask(new Suggestions([&#34;Latest news&#34;, &#34;Recent news&#34;, &#34;Yesterday&#39;s news&#34;]));
+});</code></pre>
+<p>The <code>app.intent()</code> function is used to declare a callback to handle an intent. This <code>app.intent()</code> function receives two important arguments.</p>
+<ul>
+<li>Intent name: Specify a target intent name to register a callback.</li>
+<li>Callback function: Specify a callback function which is executed for the triggered intent.</li>
+</ul>
+<p>The following value is passed for the first argument of the callback function.</p>
+<ul>
+<li>A <a href="https://actions-on-google.github.io/actions-on-google-nodejs/classes/dialogflow.dialogflowconversation.html" target="_blank"><code>DialogflowConversation</code></a> object (the variable name: <code>conv</code>). This is a client library abstraction of the state of the dialog, and includes properties which represent values of the incoming request to our webhook, such as the current active Dialogflow contexts, the surface capabilities of the user device, etc.</li>
+</ul>
+<p>The Default Welcome Intent handler function does the following:</p>
+<ul>
+<li>Pass a string to the <code>conv.ask()</code> function. It means that the reply message to the user is passed to the Google Assistant.</li>
+<li>Pass a <a href="https://actions-on-google.github.io/actions-on-google-nodejs/classes/conversation_response.suggestions.html" target="_blank"><code>Suggestions</code></a> object to the conv.ask() function. It means that the Suggestion Chip is also passed to the Google Assistant, not only the reply message.</li>
+</ul>
+<p>By <a href="https://developers.google.com/actions/assistant/responses#suggestion_chip" target="_blank">Suggestion Chip</a>, if the user is using a device with screen, the user can ask Google Assistant by tapping only without inputting texts and speaking. For example, the Suggestion Chip will be shown under the reply message as like the following.</p>
+<p><img style="max-width: 393.50px" src="img/caf58024f8252da2.png"></p>
+<h2><strong>Create a function to provide news</strong></h2>
+<p>Add the following code into the <strong>index.js</strong> file. The place you should add the code is below the comment:</p>
+<h3><strong>The function to provide news of specific time span</strong></h3>
+<pre><code>// The function to provide news of specific time span
+const getNews = (start, end) =&gt; {
+    return [
+        {
+            created: new Date(&#34;2018-09-24T09:00:00+0900&#34;),
+            contents: &#34;It will rain from evening.&#34;
+        },
+        {
+            created: new Date(&#34;2018-09-24T22:30:00+0900&#34;),
+            contents: &#34;A JavaScript study session will be held inside the company from 10 am on the 19th tomorrow. Please join us.&#34;
+        },
+        {
+            created: new Date(&#34;2018-09-25T10:00:00+0900&#34;),
+            contents: &#34;The number of users finally exceeded 100 million!&#34;
+        }
+    ].filter(x =&gt; {
+        // Limit news by the specific span
+        return (start &lt;= x.created.getTime()) &amp;&amp; (x.created.getTime() &lt;= end);
+    }).sort((a, b) =&gt; {
+        // Sort news by the created
+        return a.created.getTime() - b.created.getTime();
+    }).map(x =&gt; {
+        // Return contents only
+        return x.contents;
+    });
+};</code></pre>
+<p>Essentially, we should get the news from some database or such storage dynamically, in this codelab, we create a <code>getNews()</code> function to get the fixed news list. In the code above, three news are defined. You can define news freely, but you need to include the following dates specified by the <code>created</code> property. They are useful at testing your action.</p>
+<ul>
+<li>Today (and within 24 hours from current time).</li>
+<li>Yesterday (and within 24 hours from current time).</li>
+<li>Yesterday (and before 24 hours from current time).</li>
+</ul>
+<p>Here, we create one more convenience function. In some intent callback handler functions, they send a reply message with Suggestion Chip. It is not good to write same codes continuously. Therefore, we create a <code>reply()</code> function for common purpose. Add the following code into the <strong>index.js</strong> file. The place you should add the code is below the comment:</p>
+<h3><strong>The function to reply</strong></h3>
+<pre><code>// The function to reply
+const reply = (conv, message) =&gt; {
+    conv.ask(message);
+    conv.ask(new Suggestions([
+        &#34;Send daily&#34;, &#34;Send in real time&#34;,
+        &#34;Latest news&#34;, &#34;Recent news&#34;, &#34;Yesterday&#39;s news&#34;
+    ]));
+};</code></pre>
+<h2><strong>Create &#34;Recent News&#34; intent handler function</strong></h2>
+<p>Now, create each intent handler with the function to provide the news. The first intent handler is the Recent News intent handler function to tell the news list of within 24 hours. Add the following code into the <strong>index.js</strong> file. The place you should add the code is below the comment.</p>
+<h3><strong>&#34;Recent News&#34; intent handler function</strong></h3>
+<pre><code>// &#34;Recent News&#34; intent handler
+app.intent(&#34;Recent News&#34;, conv =&gt; {
+    // Get news within 24 hours
+    const news = getNews(Date.now() - 24 * 60 * 60 * 1000, Date.now());
+    // Reply
+    if (news.length === 0) {
+        reply(conv, &#34;Nothing is the recent news. When do you want to know the news?&#34;);
+    } else {
+        reply(conv, `The recent news. ${news.join(&#34;&#34;)} That&#39;s all. When do you want to know the news?`);
+    }
+});</code></pre>
+<p>The code above returns different response depending on whether there is one or more news within 24 hours or not.</p>
+<h2><strong>Create &#34;Latest News&#34; intent handler function</strong></h2>
+<p>Next, create the Latest News intent handler function to tell one latest news. Add the following code into the <strong>index.js</strong> file. The place you should add the code is below the comment.</p>
+<h3><strong>&#34;Latest News&#34; intent handler function</strong></h3>
+<pre><code>// &#34;Latest News&#34; intent handler
+app.intent(&#34;Latest News&#34;, conv =&gt; {
+    // Get news within 24 hours
+    const news = getNews(Date.now() - 24 * 60 * 60 * 1000, Date.now());
+    if (news.length === 0) {
+        reply(conv, &#34;Nothing is the latest news. When do you want to know the news?&#34;);
+    } else {
+        reply(conv, `The latest news. ${news[news.length - 1]} When do you want to know the news?`);
+    }
+});</code></pre>
+<p>The code above decides the latest news from the news retrieved from within 24 hours.</p>
+<h2><strong>Create &#34;Past News&#34; intent handler function</strong></h2>
+<p>The last intent you should create is the Past News intent handler function to tell the news of specific date the user specifies. Add the following code into the <strong>index.js</strong> file. The place you should add the code is below the comment.</p>
+<h3><strong>Create &#34;Past News&#34; intent handler function</strong></h3>
+<pre><code>// &#34;Past News&#34; intent handler
+app.intent(&#34;Past News&#34;, (conv, {date}) =&gt; {
+    // Get news of specific date
+    const start = new Date(date).setHours(0, 0, 0, 0);
+    const news = getNews(start, start + 24 * 60 * 60 * 1000 - 1);
+    // Reply
+    if (news.length === 0) {
+        reply(conv, &#34;Nothing is the recent news. When do you want to know the news?&#34;);
+    } else {
+        reply(conv, `The news of specific date. ${news.join(&#34;&#34;)} That&#39;s all. When do you want to know the news?`);
+    }
+});</code></pre>
+<p>The Recent News and Latest News intent handlers receive one argument: <code>conv</code>. However, the Past News intent handler also receive a parsing result by the Dialogflow. In this codelab, we specifies 2nd argument <code>{date}</code> to the Past News intent handler. When you registered the Past News intent on the Dialogflow Console, do you remember that the <code>date</code> parameter which the type is <code>@sys.date</code> entity was automatically recognized? Here, the Past News intent handler receives the recognized value, and uses as the condition to search news.</p>
+<p><img style="max-width: 602.00px" src="img/214ff46e062a2d3f.png"></p>
+<p>After writing the Past News intent handler function, click <strong>DEPLOY</strong> button to deploy the code to the Firebase.</p>
+<h2><strong>Test your action</strong></h2>
+<p>By the preceding steps, your Daily News action became to be able to provide basic features. Now, with the Actions Console Simulator, actually let&#39;s test your action.</p>
+<aside class="special"><p><strong>Tip:</strong> You can find the most recent information about using the Actions Console simulator in this <a href="https://developers.google.com/actions/tools/simulator" target="_blank">guide</a>. Please refer there if you run into any issues following the steps listed below.</p>
+</aside>
+<p>To test your Action with Actions Simulator:</p>
+<ol type="1" start="1">
+<li>On the left navigation of the <a href="https://console.dialogflow.com/" target="_blank">Dialogflow console</a>, click <strong>Integrations</strong>. Then, click <strong>Google Assistant &gt; Integration Settings</strong>.</li>
+<li>Click Test to update your Actions project and load it into the Actions Console simulator. (If you see a ‘Check auto-preview setting&#39; dialog, you can leave the ‘Auto-preview changes&#39; option enabled, then click <strong>Continue</strong>.)</li>
+</ol>
+<p><img style="max-width: 602.00px" src="img/a4a22a67c4311aca.png"></p>
+<ol type="1" start="3">
+<li>To test your Action in the simulator, type &#34;Talk to my test app&#34; into the <strong>Input</strong> field and hit enter.</li>
+</ol>
+<aside class="warning"><p>If you see &#34;Welcome&#34; as the response in the simulator, it is possible that some error occurred in the fulfillment. You need to confirm whether some error occurred or not in the Cloud Functions logs. You can open the log page by clicking the link on the bottom of the <strong>Fulfillment</strong> page of the Dialogflow.</p>
+</aside>
+<ol type="1" start="4">
+<li>Confirm whether you can get the correct responses, if you say the following phrases:</li>
+</ol>
+<ul>
+<li>&#34;Today&#39;s news&#34;</li>
+<li>&#34;Recent news&#34;</li>
+<li>&#34;Latest news&#34;</li>
+<li>&#34;Goodbye&#34;</li>
+</ul>
+<p><img style="max-width: 319.21px" src="img/9af6358f9a8681a9.png"></p>
+<p>Now, the implementation for basic features of your Daily News action.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Add Daily Updates" duration="15">
+        <p>In this section, we add Daily Updates feature to your Daily News action. Your action can get the feature by the Daily Updates to send notifications about the recent news at each time when the user specifies daily.</p>
+<aside class="warning"><p>As of September 27 in 2018, unfortunately Android device is only available environment for that the Daily Update feature works. Users who are using the Google Assistant app for iOS or other enviromnents cannot use the Daily Updates.</p>
+</aside>
+<h2><strong>Understand how Daily Updates works</strong></h2>
+<p>Using the Daily Updates, users can receive notification at specific time daily. When the user taps the notification, Google Assistant invokes the action, then the certain intent in the action is triggered.</p>
+<p><img style="max-width: 602.00px" src="img/7f5679b95f686821.png"></p>
+<p>The process flow of Daily Updates is follows:</p>
+<p><img style="max-width: 602.00px" src="img/6826c9e68e923b9.png"></p>
+<ol type="1" start="1">
+<li>The user says the phrase to request to register Daily Updates to your action via Google Assistant.</li>
+<li>The fulfillment of your action requests to register Daily Updates to the Actions on Google with <a href="https://actions-on-google.github.io/actions-on-google-nodejs/classes/conversation_question.registerupdate.html" target="_blank"><code>RegisterUpdate</code></a> class provided by the SDK.</li>
+<li>Google Assistant asks the user the time when the user wants to receive notifications. When the user answers the time, the registration of Daily Updates is completed.</li>
+<li>When come around the time, Google Assistant sends a notification to the user&#39;s device.</li>
+<li>When the user notices the notification, the user taps the notification. Then, Google Assistant is invoked.</li>
+<li>The Google Assistant invokes your action based on the notification content. And, the intent specified by the step (2) is triggered.</li>
+<li>The action responds a reply message from the intent handler function.</li>
+</ol>
+<p>In this codelab, we register the Recent News intent to tell the recent news as the Daily Updates.</p>
+<h2><strong>Create an intent to register Daily Updates</strong></h2>
+<p>First, we add an intent to tell users to want to receive recent news daily to Dialogflow. Do the following steps on the Dialogflow.</p>
+<ol type="1" start="1">
+<li>Click <strong>+</strong> icon on the right of the <strong>Intents</strong> menu in the left navigation menu.</li>
+<li>Fill in &#34;Setup Daily Updates&#34; into the <strong>Intent name</strong>.</li>
+<li>Fill in the following phrases to the <strong>Training phrases</strong>.</li>
+</ol>
+<ul>
+<li>&#34;Send daily&#34;</li>
+<li>&#34;Send me news daily&#34;</li>
+</ul>
+<p><img style="max-width: 602.00px" src="img/3799161cc0fb128d.png"></p>
+<ol type="1" start="4">
+<li>Click <strong>Fulfillment</strong> on the bottom of the page, then the UI to configure your fulfillment is opened. And, turn on <strong>Enable webhook call for this intent</strong>.</li>
+<li>Click <strong>SAVE</strong> button on the top of the page to save the modifications.</li>
+</ol>
+<h2><strong>Create &#34;Setup Daily Updates&#34; intent handler function</strong></h2>
+<p>Next, we add Setup Daily Updates intent handler function to register Daily Updates. Add the following code into the <strong>index.js</strong> file. The place you should add the code is below the comment.</p>
+<h3><strong>&#34;Setup Daily Updates&#34; intent handler function</strong></h3>
+<pre><code>// &#34;Setup Daily Updates&#34; intent handler
+app.intent(&#34;Setup Daily Updates&#34;, conv =&gt; {
+    // Request to register Daily Updates
+    conv.ask(new RegisterUpdate({
+        intent: &#34;Recent News&#34;,
+        frequency: &#34;DAILY&#34;
+    }));
+});</code></pre>
+<p>To register Daily Updates, we use the <a href="https://actions-on-google.github.io/actions-on-google-nodejs/classes/conversation_question.registerupdate.html" target="_blank"><code>RegisterUpdate</code></a> class provided by the SDK. At that time, specify the following information:</p>
+<ul>
+<li><code>intent</code> - Specify the intent name which is triggered at tapping the notification by the user.</li>
+<li><code>frequency</code> - Specify the &#34;DAILY&#34; string that represents Daily Updates.</li>
+</ul>
+<p>By the code above, instead of your action, Google Assistant asks the user the time to send notification.</p>
+<h2><strong>Create an intent to get the result of Daily Updates registration</strong></h2>
+<p>After specifying the time to the Google Assistant by the user, the Actions on Google sends your action <code>actions_intent_REGISTER_UPDATE</code>. You need to add an intent to receive this event to your Dialogflow agent. Do the following steps on the Dialogflow Console.</p>
+<ol type="1" start="1">
+<li>Click <strong>+</strong> icon on the right of the <strong>Intents</strong> menu in the left navigation menu.</li>
+<li>Fill in &#34;Finish Daily Updates Setup&#34; into the <strong>Intent name</strong>.</li>
+<li>Fill in  the &#34;actions_intent_REGISTER_UPDATE&#34; to the <strong>Events</strong>.</li>
+</ol>
+<p><img style="max-width: 602.00px" src="img/525874af94dda4eb.png"></p>
+<ol type="1" start="4">
+<li>Click <strong>Fulfillment</strong> on the bottom of the page, then the UI to configure your fulfillment is opened. And, turn on <strong>Enable webhook call for this intent</strong>.</li>
+<li>Click <strong>SAVE</strong> button on the top of the page to save the modifications.</li>
+</ol>
+<h2><strong>Create &#34;Finish Daily Updates Setup&#34; intent handler function</strong></h2>
+<p>Add a function to handle the <code>actions_intent_REGISTER_UPDATE</code> event in your fulfillment. Add the following code into the <strong>index.js</strong> file. The place you should add the code is below the comment.</p>
+<h3><strong>&#34;Finish Daily Updates Setup&#34; intent handler function</strong></h3>
+<pre><code>// &#34;Finish Daily Updates Setup&#34; intent handler
+app.intent(&#34;Finish Daily Updates Setup&#34;, (conv, params, registered) =&gt; {
+    if (registered &amp;&amp; registered.status === &#34;OK&#34;) {
+        conv.close(&#34;Ok, I&#39;ll start giving you daily updates. See you again.&#34;);
+    } else {
+        reply(conv, &#34;Feel free to register daily updates. When do you want to know the news?&#34;);
+    }
+});</code></pre>
+<p>You can know the result of registering Daily Updates by checking the 3rd argument of the callback function which is passed as the 2nd argument of the <code>app.intent()</code> function. In the code above, its variable is called <code>registered</code>. If this value is not undefined and the status value is &#34;OK&#34;, the registration of Daily Updates is succeeded.</p>
+<p>If the Daily Updates is registered, in this codelab, reply and close the conversation at the same time.</p>
+<h2><strong>Register Recent News intent as Daily Updates</strong></h2>
+<p>To send notification to users with Daily Updates, the intent has to be registered as the target of Daily Updates on Actions on Google. To register it, do the following steps.</p>
+<ol type="1" start="1">
+<li>On the left navigation of the <a href="https://console.dialogflow.com/" target="_blank">Dialogflow console</a>, click <strong>Integrations</strong>. Then, click <strong>Google Assistant &gt; Integration Settings</strong>.</li>
+<li>Fill in &#34;Recent News&#34; to the <strong>Add intent</strong> field of <strong>Implicit invocation</strong>, then press ENTER key.</li>
+</ol>
+<p><img style="max-width: 602.00px" src="img/74ff34a57ecaed31.png"></p>
+<ol type="1" start="3">
+<li>Click <strong>TEST</strong>. Then, Actions on Google will be opened in the new tab.</li>
+<li>Click <strong>Actions</strong> from the navigation menu on the left of Actions on Google Console. Then, click the row of the <strong>Recent News</strong> in the list of the right in the page.</li>
+</ol>
+<p><img style="max-width: 602.00px" src="img/5810aa69f9eb4fcc.png"></p>
+<ol type="1" start="5">
+<li>Turn on the <strong>Would you like to offer daily updates to users?</strong> on the bottom of the page. And, fill in &#34;Daily News&#34; to the <strong>Content title</strong> field. This string will be used on notifications.</li>
+</ol>
+<p><img style="max-width: 602.00px" src="img/e86270be59fbb476.png"></p>
+<ol type="1" start="6">
+<li>Click <strong>SAVE</strong> button on the right top of the page.</li>
+</ol>
+<h2><strong>Test the Daily Updates</strong></h2>
+<p>Now, let&#39;s test the Daily Updates. You need to use your Smartphone device, instead of the Actions Simulator of Actions on Google. The step for testing is the following.</p>
+<ol type="1" start="1">
+<li>On your smartphone device, launch Google Assistant. And, say &#34;Talk to my test app&#34; to invoke your action. You will receive the welcome message from your action.</li>
+<li>Say &#34;Send daily&#34;.</li>
+<li>Google Assistant asks the time when you want to send notifications. As like the following, you need to answer the time. Notice, the time must be after 10 minutes based on the current time.</li>
+</ol>
+<ul>
+<li>&#34;4:30pm&#34;</li>
+<li>&#34;16:45&#34;</li>
+</ul>
+<ol type="1" start="4">
+<li>Wait until the time comes.</li>
+<li>When receiving the notification on your smartphone device, tap it.</li>
+</ol>
+<aside class="warning"><p>You will receive a notification delay (it would become a few minutes). If you could not get the notification, wait a few minutes.</p>
+</aside>
+<p>If you want to cancel the notification sending, tap the &#34;TURN OFF&#34; on the received notification. When tapping it, Google Assistant asks you to turn off the notification. If you answer &#34;Yes&#34;, the notification sending will be canceled.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Request Push Notifications permission" duration="15">
+        <p>In this section, we add Push Notifications for your Daily News action. Users can receive notifications about a latest news in real time with the Push Notifications. </p>
+<h2><strong>Understand how Push Notifications works</strong></h2>
+<p>Using Push Notifications, your action can send users notifications anytime. But, your action can send it after the user allows to send it. When the user taps the notification, Google Assistant invokes your action, and the certain intent including your action is triggered.</p>
+<p><img style="max-width: 602.00px" src="img/86f2c61fb22b180b.png"></p>
+<p>The process flow of Push Notifications is follows.</p>
+<p><img style="max-width: 602.00px" src="img/6ae62bb6204186e8.png"></p>
+<ol type="1" start="1">
+<li>The user says the phrase to request Push Notifications  to your action via Google Assistant.</li>
+<li>The fulfillment of your action requests to allow Push Notifications to the Actions on Google with <a href="https://actions-on-google.github.io/actions-on-google-nodejs/classes/conversation_question.updatepermission.html" target="_blank"><code>UpdatePermission</code></a> class provided by the SDK.</li>
+<li>Google Assistant asks the user to allow to send notifications. The user answers about whether allows to send it or not.</li>
+<li>After allowing the user it, your action sends a notification with Actions API. The notification sent to the user&#39;s smartphone device.</li>
+<li>When the user notices the notification, the user taps the notification. Then, Google Assistant is invoked.</li>
+<li>The Google Assistant invokes your action based on the notification content. And, the intent specified by the step (2) is triggered.</li>
+<li>The action responds a reply message from the intent handler function.</li>
+</ol>
+<p>In this codelab, we use Push Notifications for the Latest News intent to tell the latest news. In this section, first, we add a feature to get a permission to send notifications from users.</p>
+<h2><strong>Create an intent to request Push Notifications</strong></h2>
+<p>First, we add an intent to request to get the latest news in real time by users to the Dialogflow agent. Do the following step on the Dialogflow.</p>
+<ol type="1" start="1">
+<li>Click <strong>+</strong> icon on the right of the <strong>Intents</strong> menu in the left navigation menu.</li>
+<li>Fill in &#34;Setup Push Notifications&#34; into the <strong>Intent name</strong>.</li>
+<li>Fill in the following phrases to <strong>Training phrases</strong>.</li>
+</ol>
+<ul>
+<li>&#34;Send in real time&#34;</li>
+<li>&#34;Send quickly&#34;</li>
+<li>&#34;Send soon&#34;</li>
+</ul>
+<p><img style="max-width: 602.00px" src="img/7f08ecd691d4f622.png"></p>
+<ol type="1" start="4">
+<li>Click <strong>Fulfillment</strong> on the bottom of the page, then the UI to configure your fulfillment is opened. And, turn on <strong>Enable webhook call for this intent</strong>.</li>
+<li>Click <strong>SAVE</strong> button on the top of the page to save the modifications.</li>
+</ol>
+<h2><strong>Create &#34;Setup Push Notifications&#34; intent handler function</strong></h2>
+<p>Next, add a new intent handler function for the Setup Push Notifications intent to request to use Push Notifications. Add the following code into the <strong>index.js</strong> file. The place you should add the code is below the comment.</p>
+<h3><strong>&#34;Setup Push Notifications&#34; intent handler function</strong></h3>
+<pre><code>// &#34;Setup Push Notifications&#34; intent handler
+app.intent(&#34;Setup Push Notifications&#34;, conv =&gt; {
+    conv.ask(new UpdatePermission({
+        intent: &#34;Latest News&#34;
+    }));
+});</code></pre>
+<p>To get a permission to send notifications with Push Notifications from users, we use <a href="https://actions-on-google.github.io/actions-on-google-nodejs/classes/conversation_question.updatepermission.html" target="_blank"><code>UpdatePermission</code></a> class provided by the SDK. At the time, we pass the following information. </p>
+<ul>
+<li><code>intent</code> - Specify the intent name which is triggered when the user taps the notification.</li>
+</ul>
+<p>By the code above, Google Assistant asks the user whether allowing to send notifications or not, instead of your action.</p>
+<h2><strong>Create an intent to get the result about allowing of Push Notifications</strong></h2>
+<p>After the user answers to allow or deny to the Google Assistant, Actions on Google sends <code>actions_intent_PERMISSION</code> event to your action.  You need to add an intent to handle the event to the Dialogflow agent. Do the following step on the Dialogflow Console.</p>
+<ol type="1" start="1">
+<li>Click <strong>+</strong> icon on the right of the <strong>Intents</strong> menu in the left navigation menu.</li>
+<li>Fill in &#34;Finish Push Notifications Setup&#34; into the <strong>Intent name</strong>.</li>
+<li>Fill in &#34;actions_intent_PERMISSION&#34; into the <strong>Events</strong>.</li>
+</ol>
+<p><img style="max-width: 602.00px" src="img/cbdcb0c3257d04b0.png"></p>
+<ol type="1" start="4">
+<li>Click <strong>Fulfillment</strong> on the bottom of the page, then the UI to configure your fulfillment is opened. And, turn on <strong>Enable webhook call for this intent</strong>.</li>
+<li>Click <strong>SAVE</strong> button on the top of the page to save the modifications.</li>
+</ol>
+<h2><strong>Create &#34;Finish Push Notifications Setup&#34; intent handler function</strong></h2>
+<p>Add a function to handle the <code>actions_intent_PERMISSION</code> event in your fulfillment. Add the following code into the <strong>index.js</strong> file. The place you should add the code is below the comment.</p>
+<h3><strong>&#34;Finish Push Notifications Setup&#34; intent handler function</strong></h3>
+<pre><code>// &#34;Finish Push Notifications Setup&#34; intent handler
+app.intent(&#34;Finish Push Notifications Setup&#34;, (conv, params, granted) =&gt; {
+    if (granted) {
+        const userId = conv.arguments.get(&#34;UPDATES_USER_ID&#34;);
+        console.log(&#34;userId&#34;, userId);
+        conv.close(&#34;I&#39;ll send a latest news soon. See you again.&#34;);
+    } else {
+        reply(conv, &#34;Feel free to register Push Notifications. When do you want to know the news?&#34;);
+    }
+});</code></pre>
+<p>You can know the result of whether the user allows to send notifications with Push Notifications by checking the 3rd argument of the callback function which is passed as the 2nd argument of the <code>app.intent()</code> function. In the code above, its variable is called <code>granted</code>. If this value is not undefined, it means that the user allowed to send notifications..</p>
+<p>In the code above, we get the ID of the user who granted the permission to send notifications by calling the <code>conv.arguments.get(&#34;UPDATES_USER_ID&#34;)</code>. Essentially, we need to store the ID string into a database or such storage, but, we output the string to the log in this codelab. This value will be used at sending notifications with Actions API later.</p>
+<p>If the Push Notifications is allowed, in this codelab, reply and close the conversation at the same time.</p>
+<h2><strong>Register Latest News intent as Push Notifications</strong></h2>
+<p>To send user notifications with Push Notifications, you need to register the intent as the target intent for Push Notifications on Actions on Google Console. To register it, do the following step.</p>
+<ol type="1" start="1">
+<li>On the left navigation of the <a href="https://console.dialogflow.com/" target="_blank">Dialogflow console</a>, click <strong>Integrations</strong>. Then, click <strong>Google Assistant &gt; Integration Settings</strong>.</li>
+<li>Fill in &#34;Latest News&#34; to the <strong>Add intent</strong> field of <strong>Implicit invocation</strong>, then press ENTER key.</li>
+</ol>
+<p><img style="max-width: 602.00px" src="img/f25acf985ea96ee6.png"></p>
+<ol type="1" start="3">
+<li>Click <strong>TEST</strong>. Then, Actions on Google will be opened in the new tab.</li>
+<li>Click <strong>Actions</strong> from the navigation menu on the left of Actions on Google Console. Then, click the row of the <strong>Latest News</strong> in the list of the right in the page.</li>
+</ol>
+<p><img style="max-width: 602.00px" src="img/aa2882e10bfd8e5e.png"></p>
+<ol type="1" start="5">
+<li>Turn on the <strong>Would you like to send push notifications? If yes, user permission will be needed.</strong> on the bottom of the page. And, fill in &#34;Latest News&#34; to the <strong>Content title</strong> field. This string will be used on notifications.</li>
+</ol>
+<p><img style="max-width: 602.00px" src="img/c36560adec4b4ea0.png"></p>
+<ol type="1" start="6">
+<li>Click <strong>SAVE</strong> button on the right top of the page.</li>
+</ol>
+<h2><strong>Test to allow to send notification with Push Notifications</strong></h2>
+<p>Let&#39;s test to allow to send notifications with Push Notifications. In this codelab, as same as Daily Updates, test your action on your smartphone device (actually, this test will work on the Actions Simulator). To test it, do the following.</p>
+<ol type="1" start="1">
+<li>On your smartphone, launch Google Assistant. Then, say &#34;Talk to my test app&#34; to invoke your action. You will receive the welcome message from your action.</li>
+<li>Say &#34;Send in real time&#34;.</li>
+<li>Google Assistant asks you to allow/deny to send notifications. Then, reply &#34;Yes&#34;.</li>
+</ol>
+<p>After answering, you need to find the ID of the user who allowed to send notifications from the logs. Do the following step.</p>
+<ol type="1" start="1">
+<li>Click the <strong>View execution logs in the Firebase console</strong> link on the bottom of the Fulfillment page in Dialogflow. The logs page of Cloud Functions of Firebase will be opened in the new tab.</li>
+<li>Find the row like <code>userId ...</code>. The string is the ID of the user who granted the permission to send notifications. You need to write it down, and you will use it later.</li>
+</ol>
+<p><img style="max-width: 602.00px" src="img/34b099a5fae8dcad.png"></p>
+<p>You can send notifications actually, if you get the ID string of the user who granted the permission to send notifications with Push Notifications feature.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Send Push Notification" duration="15">
+        <p>In this section, we create a function to send actual notifications for the user who granted the permission to send notifications at the previous section. In this codelab, we create a JavaScript file to send notifications, instead of implementing it to the fulfillment code.</p>
+<aside class="special"><p><strong>Tip:</strong> To install the CLI you need to have installed <a href="https://www.npmjs.com/" target="_blank">npm</a> which typically comes with <a href="https://nodejs.org/en/" target="_blank">Node.js</a>.</p>
+</aside>
+<h2><strong>Enable Actions API</strong></h2>
+<p>To send notifications with Push Notifications, we need to use Actions API. But, we cannot use the Actions API now, although you created your project on Actions on Google and Dialogflow. You need to become the Actions API available on Google Cloud Platform.</p>
+<p>To enable Actions API, do the following operation.</p>
+<ol type="1" start="1">
+<li>There is a gear icon next to the Dialogflow agent name on the left navigation menu in Dialogflow. Click the gear icon to open the setting page.</li>
+</ol>
+<p><img style="max-width: 602.00px" src="img/4b03f81904d5f7ab.png"></p>
+<ol type="1" start="2">
+<li>Click <strong>Google Cloud</strong> link on the <strong>GOOGLE PROJECT</strong>. In the new tab, the Google Cloud Platform Console is opened. Confirm that the &#34;daily-news-codelab&#34; project is selected on the header.</li>
+</ol>
+<p><img style="max-width: 602.00px" src="img/357fb7eeac3f66d7.png"></p>
+<ol type="1" start="3">
+<li>Click the hamburger menu on the top left of the page, then click <strong>APIs &amp; Services</strong> in the menus. And, click <strong>Dashboard</strong>.</li>
+</ol>
+<p><img style="max-width: 602.00px" src="img/ba2d6f23ad2b1267.png"></p>
+<ol type="1" start="4">
+<li>Click <strong>ENABLE APIS AND SERVICES</strong> on the top of the page.</li>
+<li>Fill in &#34;Actions API&#34; to the <strong>Search for APIs &amp; Services</strong> field. Then, the search result will be shown. In the result, click &#34;Actions API&#34;.</li>
+</ol>
+<p><img style="max-width: 602.00px" src="img/618ba569d3381385.png"></p>
+<ol type="1" start="6">
+<li>Click <strong>ENABLE</strong> button on the description page for Actions API.</li>
+</ol>
+<p><img style="max-width: 602.00px" src="img/a71c5ed8229f804.png"></p>
+<p>After the Actions API is enabled, the dashboard page for Actions API will be shown.</p>
+<h2><strong>Issue Service Account Key</strong></h2>
+<p>To use Actions API to send notifications, you need to issue Service Account Key from the Google Cloud Platform. Your client will be authenticated by the issued Service Account Key to use Actions API.</p>
+<p>To issue Service Account Key, do the following step.</p>
+<ol type="1" start="1">
+<li>Click the hamburger menu on the top left of the page, then click <strong>APIs &amp; Services</strong> in the menus. And, click <strong>Credentials</strong>.</li>
+</ol>
+<p><img style="max-width: 602.00px" src="img/31fca742ac1ec093.png"></p>
+<ol type="1" start="2">
+<li>Select <strong>Service account key</strong> from the <strong>Create Credentials</strong> pulldown menu.</li>
+</ol>
+<p><img style="max-width: 602.00px" src="img/89aaa78baea83d74.png"></p>
+<ol type="1" start="3">
+<li>As Service account, select &#34;New service account&#34;, and fill in the following:</li>
+</ol>
+<ul>
+<li>Service account name: &#34;notifications&#34;</li>
+<li>Role: (Project) Owner</li>
+<li>Key type: JSON</li>
+</ul>
+<p><img style="max-width: 602.00px" src="img/3542ba43a1b14e2d.png"></p>
+<ol type="1" start="4">
+<li>Click <strong>Create</strong>. Select a directory to save the downloaded JSON file.</li>
+</ol>
+<h2><strong>Create Node.js project</strong></h2>
+<p>In this section, we start to create a JavaScript file to send notifications. First, do the following step to create a directory and to start Node.js project.</p>
+<ol type="1" start="1">
+<li>In your terminal, create <code>daily-news-codelab</code> directory in any place, and change the current directory into the created directory.</li>
+</ol>
+<pre><code>mkdir daily-news-codelab
+cd daily-news-codelab</code></pre>
+<ol type="1" start="2">
+<li>With the <code>npm</code> command, create a Node.js project. You ask some questions, you can answer pressing ENTER key for all questions.</li>
+</ol>
+<pre><code>npm init</code></pre>
+<ol type="1" start="3">
+<li>As the dependencies, install googleapis and request.</li>
+</ol>
+<pre><code>npm install googleapis --save
+npm install request --save</code></pre>
+<h2><strong>Create JavaScript file to send notifications</strong></h2>
+<p>You could get your Node.js profile. Now, confirm whether you have the following:</p>
+<ul>
+<li>The ID string of the target user to send notifications</li>
+<li>The JSON file of your service account key</li>
+</ul>
+<p>Create a new file named <code>send-notification.js</code> including the following contents into the <code>daily-news-codelab</code> directory you created at the previous section.</p>
+<h3><strong>send-notification.js</strong></h3>
+<pre><code>&#34;use strict&#34;;
+
+const {google} = require(&#34;googleapis&#34;);
+const key = require(&#34;&lt;SERVICE_ACCOUNT_KEY_JSON_FILE_PATH&gt;&#34;);
+const request = require(&#34;request&#34;);
+
+const jwtClient = new google.auth.JWT(
+    key.client_email,
+    null,
+    key.private_key,
+    [
+        &#34;https://www.googleapis.com/auth/actions.fulfillment.conversation&#34;
+    ],
+    null
+);
+
+jwtClient.authorize((err, tokens) =&gt; {
+    const options = {
+        userNotification: {
+            title: process.argv[2]
+        },
+        target: {
+            userId: &#34;&lt;TARGET_USER_ID&gt;&#34;,
+            intent: &#34;Latest News&#34;,
+            locale: &#34;en-US&#34;
+        }
+    };
+    request.post(&#34;https://actions.googleapis.com/v2/conversations:send&#34;, {
+        auth: {
+            &#34;bearer&#34;: tokens.access_token
+        },
+        json: true,
+        body: {
+            customPushMessage: options
+       }
+    }, (err, response, body) =&gt; {
+       console.log(response.statusCode + &#34;:&#34; + response.statusMessage);
+    });
+});</code></pre>
+<p>You need modify two codes in the <code>send-notification.js</code> file. Replace them with the followings:</p>
+<ul>
+<li><code>&lt;SERVICE_ACCOUNT_KEY_JSON_FILE_PATH&gt;</code> - The JSON file path of your service account key</li>
+<li><code>&lt;TARGET_USER_ID&gt;</code> - The ID of the target user to send notifications</li>
+</ul>
+<p>The first half of the code reads the JSON file of your service account key and retrieves an access token. Then, the last half of the code passes the following necessary information to the <code>request()</code> function at calling the Actions API endpoint. For instance, the following information are passed:</p>
+<ul>
+<li>body.customPushMessage.userNotification.title - The title of notifications.</li>
+<li>body.customPushMessage.target.userId - The target user ID string to send notifications.</li>
+<li>body.customPushMessage.target.intent - The intent name triggered at the user taps the notification.</li>
+<li>body.customPushMessage.target.locale - Country and Language code (IETF BCP-47).</li>
+</ul>
+<p>You can specify the notification title string with the command argument at executing the <code>send-notification.js</code> file with <code>process.argv[2]</code>.</p>
+<h2><strong>Send notifications</strong></h2>
+<p>Execute the following command in your terminal:</p>
+<pre><code>node send-notification.js &#34;The number of users finally exceeded 100 million&#34;</code></pre>
+<p>If you see the following output, the notification was sent successfully.</p>
+<pre><code>200:OK</code></pre>
+<p>Now, confirm whether your smartphone device receives a notification. Then, tap the notification.</p>
+<aside class="warning"><p>You will receive a notification delay (it would become a few minutes). If you could not get the notification, wait a few minutes.</p>
+</aside>
+<p>If you want to cancel the notification sending, tap the &#34;TURN OFF&#34; on the received notification. When tapping it, Google Assistant asks you to turn off the notification. If you answer &#34;Yes&#34;, the notification sending will be canceled.</p>
+<aside class="warning"><p>Unfortunately, if you see the number which is not 200, it is possible that some error occurred. You need to confirm the following pointes.</p>
+<ul>
+<li>Whether you allowed the permission to send notifications with Push Notifications for the Google Assistant.</li>
+<li>Whether the ID string of the target user was written correctly in the <code>send-notification.js</code> file.</li>
+<li>Whether the JSON file path of your service account key is correct or not.</li>
+<li>Whether you already cancelled the notification sending by clicking the <strong>TURN OFF</strong> on the received notification.</li>
+</ul>
+</aside>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Next steps" duration="1">
+        <p><strong>Congratulations!</strong></p>
+<p>You&#39;ve now covered the intermediate skills necessary to build conversational user interfaces with Actions on Google and how to increase user engagement to send notifications to users using Daily Updates and Push Notifications.</p>
+<h2 class="checklist"><strong>What we&#39;ve covered</strong></h2>
+<ul class="checklist">
+<li>How to use Daily Updates feature to send notifications daily.</li>
+<li>How to use Push Notifications feature to send notifications in real time.</li>
+</ul>
+<h2><strong>What&#39;s next</strong></h2>
+<p>Google provides more rich code samples so that you can learn how to use Daily Updates and Push Notifications.</p>
+<ul>
+<li><a href="https://github.com/actions-on-google/actionssdk-updates-nodejs" target="_blank">actions-on-google/actionssdk-updates-nodejs</a></li>
+<li><a href="https://github.com/actions-on-google/dialogflow-updates-nodejs" target="_blank">actions-on-google/dialogflow-updates-nodejs</a></li>
+</ul>
+<p>You can explore these resources for learning about Actions on Google:</p>
+<ul>
+<li><a href="http://actions.google.com/" target="_blank">actions.google.com</a>: The official documentation site for Actions on Google.</li>
+<li><a href="https://github.com/actions-on-google/" target="_blank">Actions on Google GitHub repo</a>: Sample code and libraries.</li>
+<li><a href="https://dialogflow.com/" target="_blank">Dialogflow.com</a>: The official documentation site for Dialogflow.</li>
+<li><a href="https://plus.google.com/communities/105684267327487893574" target="_blank">Actions on Google Developers</a>: The official Google+ community for developers working with Actions on Google.</li>
+</ul>
+<p>Follow us on Twitter <a href="https://twitter.com/ActionsOnGoogle" target="_blank">@ActionsOnGoogle</a> to stay tuned to our latest announcements, and tweet to <a href="https://twitter.com/hashtag/AoGDevs?src=hash" target="_blank">#AoGDevs</a> to share what you have built!</p>
+<h2><strong>Feedback survey</strong></h2>
+<p>Before you go, <a href="https://goo.gl/forms/SLcedXyVSNl7RkUc2" target="_blank">please fill out this form</a> to let us know how we&#39;re doing!</p>
+
+
+      </google-codelab-step>
+    
+  </google-codelab>
+
+  <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+    (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-49880327-14', 'auto');
+
+    (function() {
+      var gaCodelab = '';
+      if (gaCodelab) {
+        ga('create', gaCodelab, 'auto', {name: 'codelab'});
+      }
+
+      var gaView;
+      var parts = location.search.substring(1).split('&');
+      for (var i = 0; i < parts.length; i++) {
+        var param = parts[i].split('=');
+        if (param[0] === 'viewga') {
+          gaView = param[1];
+          break;
+        }
+      }
+      if (gaView && gaView !== gaCodelab) {
+        ga('create', gaView, 'auto', {name: 'view'});
+      }
+    })();
+  </script>
+
+</body>
+</html>
