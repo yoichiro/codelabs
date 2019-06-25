@@ -1,0 +1,26 @@
+{
+  "environment": "web",
+  "format": "html",
+  "prefix": "https://storage.googleapis.com",
+  "mainga": "UA-790299-27",
+  "updated": "2019-06-25T02:20:11Z",
+  "id": "actions-with-interactive-canvas_ja",
+  "duration": 61,
+  "title": "Build Actions with Interactive Canvas for the Google Assistant",
+  "authors": "yoichiro",
+  "summary": "This codelab covers how to build actions with Interactive Canvas..",
+  "source": "1bU3sKFSacBnAGJ-xctbDlGHN8iW-8cuxHgd2ZhF2kz4",
+  "theme": "assistant",
+  "status": [
+    "live"
+  ],
+  "category": [
+    "Assistant"
+  ],
+  "tags": [
+    "lang-ja",
+    "tag-assistant",
+    "web"
+  ],
+  "url": "actions-with-interactive-canvas_ja"
+}
