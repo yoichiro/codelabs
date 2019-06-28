@@ -1,0 +1,878 @@
+
+<!doctype html>
+
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
+  <meta name="theme-color" content="#4F7DC9">
+  <meta charset="UTF-8">
+  <title>Build Actions with Interactive Canvas for the Google Assistant</title>
+  <link rel="stylesheet" href="//fonts.googleapis.com/css?family=Source+Code+Pro:400|Roboto:400,300,400italic,500,700|Roboto+Mono">
+  <link rel="stylesheet" href="//fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="https://storage.googleapis.com/codelab-elements/codelab-elements.css">
+  <style>
+    .success {
+      color: #1e8e3e;
+    }
+    .error {
+      color: red;
+    }
+  </style>
+</head>
+<body>
+  <google-codelab-analytics gaid="UA-790299-27"></google-codelab-analytics>
+  <google-codelab codelab-gaid=""
+                  id="actions-with-interactive-canvas"
+                  title="Build Actions with Interactive Canvas for the Google Assistant"
+                  environment="web"
+                  feedback-link="">
+    
+      <google-codelab-step label="Overview" duration="2">
+        <p>Actions on Google is a developer platform that lets you create software to extend the functionality of the <a href="https://assistant.google.com/" target="_blank">Google Assistant</a>, Google&#39;s virtual personal assistant, across more than 500 million devices, including smart speakers, phones, cars, TVs, headphones, and more. Users engage Google Assistant in conversation to get things done, like buying groceries or booking a ride (for a complete list of what&#39;s possible now, see the <a href="https://assistant.google.com/explore/" target="_blank">Actions directory</a>.) As a developer, you can use Actions on Google to easily create and manage delightful and effective conversational experiences between users and your own 3rd-party service.</p>
+<p>This codelab covers steps to build actions for Smart Displays. Actions we build here are operated by a voice and a screen Smart Display provides.</p>
+<p>We don&#39;t describe a detail for developing basic actions with Actions on Google and Dialogflow in this codelab. If you want to know how to build a general action, see <a href="https://codelabs.developers.google.com/codelabs/actions-1/#0" target="_blank">Build Actions for the Google Assistant (Level 1)</a>, <a href="https://codelabs.developers.google.com/codelabs/actions-2/index.html#0" target="_blank">Build Actions for the Google Assistant (Level 2)</a> and <a href="https://codelabs.developers.google.com/codelabs/actions-3/index.html#0" target="_blank">Build Actions for the Google Assistant (Level 3)</a>.</p>
+<h2 is-upgraded><strong>What you&#39;ll build</strong></h2>
+<p>In this codelab, we build an action for Smart Display with Interactive Canvas.</p>
+<ul>
+<li>Add visual information which max utilizes a screen of Smart Display for a conversation action.</li>
+<li>Update a content on the screen of Smart Display according to an input from a user via voice.</li>
+<li>Send a request to the action when manipulating on the screen by the user.</li>
+</ul>
+<p>We build a &#34;rock-paper-scissors&#34; game action in this codelab.</p>
+<p class="image-container"><img style="width: 602.00px" src="img/4adcb4774f1a6900.png"></p>
+<p>The screenshot below shows an example of the conversation flow in an action you develop. On the first screen, the user chooses whether to show rock, paper or scissors. Then switch to an image that shows while thinking what the action will give. And, we display the result of rock-paper-scissors. Finally, ask the user if they want to play again.</p>
+<p class="image-container"><img style="width: 602.00px" src="img/26a29fcf7f85e063.png"></p>
+<h2 class="checklist" is-upgraded><strong>What you&#39;ll learn</strong></h2>
+<ul class="checklist">
+<li>How to add a visual information with Interactive Canvas to a conversation action.</li>
+<li>How to receive a voice input from a user and update a screen against the input.</li>
+<li>How to receive an event on the screen from a user and do something against the event.</li>
+</ul>
+<h2 is-upgraded><strong>What you&#39;ll need</strong></h2>
+<p>The following tools must be in your environment:</p>
+<ul>
+<li>IDE/Text editor you choose like <a href="https://www.jetbrains.com/webstorm" target="_blank">WebStorm</a>, <a href="https://atom.io/" target="_blank">Atom</a> or <a href="https://www.sublimetext.com/" target="_blank">Sublime</a>.</li>
+<li>Terminal to execute shell commands including NodeJS, npm and gif you installed.</li>
+<li>Web browser like <a href="https://www.google.com/chrome/" target="_blank">Chrome</a>.</li>
+</ul>
+<p>Familiarity with <a href="https://www.javascript.com/" target="_blank">JavaScript</a> (ES6) is strongly recommended, although not required, to understand the webhook code used in this codelab.</p>
+<h2 is-upgraded><strong>Optional: Get the sample code</strong></h2>
+<p>You can optionally get the full project code for this codelab from our <a href="https://github.com/yoichiro/rock-paper-scissors-ja" target="_blank">GitHub repository</a>.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="How it works" duration="3">
+        <p>Interactive Canvas connects your conversational Action to an interactive web app so that your users can interact with your visual user interface through voice or touch. There are four components to an Action that uses Interactive Canvas:</p>
+<ul>
+<li><strong>Custom Conversational Action</strong>: An Action that uses a conversational interface to fulfill user requests. Actions that use Interactive Canvas operate in the same fundamental way as any conversational Action, but use immersive web views (<a href="https://developers.google.com/actions/interactivecanvas/reference/immersiveresponse" target="_blank">ImmersiveResponse</a>) to render responses instead of rich cards or simple text and voice responses.</li>
+<li><strong>Web app</strong>: A front-end web app with customized visuals that your Action sends as a response to users during a conversation. You build the web app with web standards like HTML, JavaScript, and CSS. assistantCanvas lets your web app communicate with your Conversational Action.</li>
+<li><strong>assistantCanvas</strong>: JavaScript API that you include in the web app to enable communication between the web app and your conversational Action.</li>
+<li><strong>ImmersiveResponse</strong>: A response type that defines how the web app should render.</li>
+</ul>
+<p>To illustrate how Interactive Canvas works, imagine a hypothetical Interactive Canvas Action called <em>Cool Colors</em> that changes the device screen color to whatever color the user says. After the user invokes the Action, the flow looks like the following:</p>
+<p class="image-container"><img style="width: 602.00px" src="img/436f5346fbb0685f.png"></p>
+<ol type="1" start="1">
+<li>The user says Turn the screen blue to the Assistant device (a Smart Display in this case).</li>
+<li>The Actions on Google platform routes the user&#39;s request to Dialogflow to match an intent.</li>
+<li>The fulfillment for the matched intent is run and an ImmersiveResponse is sent to the Smart Display. The device uses the URL to load the web app if it has not yet been loaded.</li>
+<li>When the web app loads, it registers callbacks with the assistantCanvas API. The state value is then passed into the registered onUpdate callback of the web app. In our example, the fulfillment sends an ImmersiveResponse with a state that includes a variable with the value of blue.</li>
+<li>The custom logic for your web app reads the state value of the ImmersiveResponse and makes the defined changes. In our example, this turns the screen blue.</li>
+<li>assistantCanvas sends the callback update to the Smart Display.</li>
+</ol>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Install the Firebase command-line interface" duration="5">
+        <p>If you have already installed the Firebase command-line interface, you can skip these steps and proceed to the next section.</p>
+<p>The Firebase Command Line Interface (CLI) allows you to deploy your Actions project to Cloud Functions.</p>
+<aside class="special"><p><strong>Tip:</strong> To install the CLI you need to have installed <a href="https://www.npmjs.com/" target="_blank">npm</a>, which typically comes with <a href="https://nodejs.org/en/" target="_blank">Node.js</a>.</p>
+</aside>
+<p>To install or upgrade the CLI, run the following npm command:</p>
+<pre><code>npm -g install firebase-tools</code></pre>
+<aside class="warning"><p>Doesn&#39;t work? You may need to <a href="https://docs.npmjs.com/getting-started/fixing-npm-permissions" target="_blank">change npm permissions</a>.</p>
+</aside>
+<p>To verify that the CLI has been installed correctly, open a terminal and run the following command:</p>
+<pre><code>firebase --version</code></pre>
+<p>Make sure the version of the Firebase CLI is above <strong>3.5.0</strong> so it has all the latest features required for Cloud Functions. If it&#39;s not, run npm install -g firebase-tools to upgrade.</p>
+<p>Authorize the Firebase CLI by running the following command:</p>
+<pre><code>firebase login</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Set up for local development" duration="10">
+        <p>Ok, let&#39;s get started to build an action. In this section, you create and prepare each project.</p>
+<h2 is-upgraded><strong>Check your Google permission settings</strong></h2>
+<p>In order to test the Action that you&#39;ll build for this codelab, you need to enable the necessary permissions.</p>
+<ol type="1" start="1">
+<li>Go to the ‘Activity Controls&#39; page (<a href="https://myaccount.google.com/activitycontrols" target="_blank">https://myaccount.google.com/activitycontrols</a>).</li>
+<li>Sign in with your Google account, if you have not already done so.</li>
+<li>Ensure that the following permissions are enabled:</li>
+</ol>
+<ul>
+<li>Web &amp; App Activity</li>
+<li>Device Information</li>
+<li>Voice &amp; Audio Activity</li>
+</ul>
+<h2 is-upgraded><strong>Setup your Project and Agent</strong></h2>
+<p>We create an Actions project and also prepare a Dialogflow agent as NLP engine which is necessary for dialog. First, create an Actions project by the following steps:</p>
+<ol type="1" start="1">
+<li>Open <a href="https://console.actions.google.com/" target="_blank">Actions console</a>.</li>
+<li>Click the <strong>Add/import project</strong>.</li>
+<li>Fill in <strong>Project name</strong> like &#39;rock-paper-scissors&#34;. This name is for your own internal reference; later on, you can set an external name for your project.</li>
+<li>Click <strong>Create Project</strong>.</li>
+<li>Click <strong>Conversational</strong> on the bottom of the page.</li>
+</ol>
+<p>After creating Actions project, turn on Interactive Canvas feature. To do this, do the following steps:</p>
+<ol type="1" start="1">
+<li>Click <strong>Deploy &gt; Directory information</strong> on the left navigation.</li>
+<li>Select &#34;Games &amp; fun&#34; on the <strong>Additional Information &gt; Category</strong>.<br><img style="width: 447.50px" src="img/3b6708c135dd475e.png"></li>
+<li>Check the &#34;Yes&#34; of <strong>Interactive Canvas</strong>.<br><img style="width: 275.50px" src="img/3755f09d4d98f178.png"></li>
+<li>Click the SAVE button on the top of the page.</li>
+</ol>
+<p>Next, create a Dialogflow agent by the following steps:</p>
+<ol type="1" start="1">
+<li>Click the <strong>Build &gt; Actions</strong> on the left navigation.</li>
+<li>Click the <strong>Add your first Action</strong>.</li>
+<li>On the Create Action dialog, select <strong>Custom Intent</strong> and click the <strong>Build</strong> to launch the Dialogflow console.</li>
+<li>In the <strong>Create Agent</strong> on the Dialogflow console, click <strong>Create</strong>.</li>
+</ol>
+<h2 is-upgraded><strong>Generate Code Set</strong></h2>
+<p>In this codelab, we create each code on your local environment. For instance, we create two codes: fulfillment code and web content displayed on Interactive Canvas. The fulfillment is implemented with Cloud Functions for Firebase, and the web content is implemented with Firebase Hosting.</p>
+<p>Ok, generate the code set. Open the terminal, and execute the following command.</p>
+<pre><code>$ mkdir rock-paper-scissors-ja
+$ cd rock-paper-scissors-ja
+$ firebase init</code></pre>
+<p>The firebase command asks you some questions. Answer as the following:</p>
+<ol type="1" start="1">
+<li><strong>Which Firebase CLI features do you want to set up for this folder?</strong> - Select Functions and Hosting.<br></li>
+</ol>
+<pre><code> ◯ Database: Deploy Firebase Realtime Database Rules
+ ◯ Firestore: Deploy rules and create indexes for Firestore
+❯◉ Functions: Configure and deploy Cloud Functions
+ ◉ Hosting: Configure and deploy Firebase Hosting sites
+ ◯ Storage: Deploy Cloud Storage security rules</code></pre>
+<ol type="1" start="2">
+<li><strong>Select a default Firebase project for this directory</strong> - When creating your Actions project, the Google Cloud Platform is created at the same time. Here, we select the project ID. If you want to create other new project, select &#34;[Create a new project]&#34;.</li>
+</ol>
+<aside class="special"><p><strong>Tip:</strong> You can find your Actions project ID on <strong>Overview</strong> &gt; (Gear icon) &gt; <strong>Project settings</strong> in the Actions Console.</p>
+</aside>
+<ol type="1" start="3">
+<li><strong>What language would you like to use to write Cloud Functions?</strong> - Select &#34;JavaScript&#34; in this codelab.<br></li>
+</ol>
+<pre><code>❯ JavaScript 
+  TypeScript </code></pre>
+<ol type="1" start="4">
+<li><strong>Do you want to use ESLint to catch probable bugs and enforce style?</strong> - Select &#34;N&#34;.</li>
+<li><strong>Do you want to install dependencies with npm now?</strong> - select &#34;Y&#34;.</li>
+</ol>
+<p>When completing to answer the questions above, files for function and hosting are generated, then dependencies are installed. Next, questions for configuring Hosting are shown. Answer like the following.</p>
+<ol type="1" start="6">
+<li><strong>What do you want to use as your public directory?</strong> - Type &#34;public&#34;.</li>
+<li><strong>Configure as a single-page app (rewrite all urls to /index.html)?</strong> - Select &#34;N&#34;.</li>
+</ol>
+<p>The following files are generated.</p>
+<pre><code>├── .firebaserc
+├── .gitignore
+├── firebase.json
+├── functions
+│   ├── .gitignore
+│   ├── index.js
+│   ├── node_modules
+│   ├── package-lock.json
+│   └── package.json
+└── public
+    ├── 404.html
+    └── index.html</code></pre>
+<h2 is-upgraded><strong>Add Dependencies and Create Initial Files for Fulfillment</strong></h2>
+<p>We add Actions on Google Client Library as dependencies to generated function code set. Execute the following commands.</p>
+<pre><code>$ cd functions
+$ npm install actions-on-google@preview --save
+$ cd ..</code></pre>
+<p>Next, replace the content of index.js file in the functions directory with the following content.</p>
+<pre><code>const functions = require(&#39;firebase-functions&#39;);
+const {
+  dialogflow,
+  ImmersiveResponse
+} = require(&#39;actions-on-google&#39;);
+
+const firebaseConfig = JSON.parse(process.env.FIREBASE_CONFIG);
+
+const app = dialogflow({
+  debug: true
+});
+
+// TODO: Write your code here.
+
+exports.fulfillment = functions.https.onRequest(app);</code></pre>
+<h2 is-upgraded><strong>Deploy your Fulfillment and Web Content</strong></h2>
+<p>After generating your code set, we deploy your fulfillment and Web content to Firebase. Do the following steps.</p>
+<pre><code>$ firebase deploy</code></pre>
+<aside class="warning"><p>If you see an error message that says &#34;An unexpected error has occurred from the CLI&#34;, try running the firebase deploy command again.</p>
+</aside>
+<p>After a few minutes, you should see <strong>&#34;Deploy complete!&#34;</strong>, which indicates that you&#39;ve successfully deployed your webhook to Firebase.</p>
+<h2 is-upgraded><strong>Retrieve the deployment URL</strong></h2>
+<p>You need to provide Dialogflow with the URL to the cloud function. To retrieve this URL, follow these steps:</p>
+<ol type="1" start="1">
+<li>Open the <a href="https://console.firebase.google.com/" target="_blank">Firebase Console</a>.</li>
+<li>Select your Actions project from the list of options.</li>
+<li>Navigate to <strong>Develop &gt; Functions</strong> on the left navigation bar. If you&#39;re prompted to &#34;Choose data sharing settings&#34;, you can ignore this option by clicking Do this later.</li>
+<li>Under the <strong>Dashboard</strong> tab, you should see an entry for &#34;dialogflowFirebaseFulfillment&#34; with a URL under <strong>Trigger</strong>. Copy this URL.</li>
+</ol>
+<p class="image-container"><img style="width: 602.00px" src="img/f617cc2b3df41132.png"></p>
+<h2 is-upgraded><strong>Set the URL in Dialogflow</strong></h2>
+<p>Now, you need to update your Dialogflow agent to use your webhook for fulfillment. To do so, follow these steps:</p>
+<ol type="1" start="1">
+<li>Open the <a href="https://console.dialogflow.com/" target="_blank">Dialogflow Console</a>.</li>
+<li>Click <strong>Fulfillment</strong> on the left navigation.</li>
+<li>Enable <strong>Webhook</strong>.</li>
+<li>Paste the URL you copied from the Firebase dashboard if it doesn&#39;t already appear.</li>
+<li>Click <strong>Save</strong>.</li>
+</ol>
+<p class="image-container"><img style="width: 602.00px" src="img/4a7b845795020d64.png"></p>
+<h2 is-upgraded><strong>Verify your project is correctly set up</strong></h2>
+<p>At this point, users can start a conversation by explicitly invoking your Action. Dialogflow sends a reply against invoking from the user and then Google Assistant says that. Here, we confirm the behavior of your action.</p>
+<aside class="special"><p><strong>Tip:</strong> You can find the most recent information about using the Actions simulator in the <a href="https://developers.google.com/actions/tools/simulator" target="_blank">Actions simulator guide</a>. Please refer there if you run into any issues following the steps listed below.</p>
+</aside>
+<p>To test out your Action in the Actions simulator:</p>
+<ol type="1" start="1">
+<li>In the Dialogflow console left navigation, click on <strong>Integrations &gt; Google Assistant</strong>.</li>
+<li>Make sure <strong>Auto-preview changes </strong>is enabled and click <strong>Test</strong> to update your Actions project.</li>
+<li>The Actions simulator loads your Actions project. To test your Action, type &#34;Talk to my test app&#34; into the <strong>Input</strong> field and press enter.</li>
+<li>You should see the reply like &#34;Sure. Let&#39;s get the test version of my test app.&#34;.</li>
+<li>Type &#34;cancel&#34;. Then, the conversation is ended.</li>
+</ol>
+<p class="image-container"><img style="width: 602.00px" src="img/dac57e1d9a4f0d1c.png"></p>
+<aside class="warning"><p>If you don&#39;t see this response, there was likely an issue with your Firebase setup. In this case, try repeating the steps under the Deploy your fulfillment section.</p>
+</aside>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Configure for Interactive Canvas" duration="10">
+        <p>The instance of Interactive Canvas is a Web page. Your action requests the use of Interactive Canvas to Google Assistant, the Web page is displayed on a screen of Smart Display or Android Smartphone.</p>
+<p>In this section, we configure some things to use Interactive Canvas.</p>
+<h2 is-upgraded><strong>Change the Configuration of Firebase Hosting</strong></h2>
+<p>The Web browser for Interactive Canvas is very limited environment than general Web browser environment. The following items are a part of the limitations.</p>
+<ul>
+<li>No cookies.</li>
+<li>No local storage.</li>
+<li>No geolocation.</li>
+<li>Can&#39;t use camera.</li>
+<li>Can&#39;t use popups like alert(), confirm() and etc.</li>
+<li>The origin for Ajax is null.</li>
+<li>The available memory size is limited less than 200MB.</li>
+<li>It is necessary to accept requests from null origin for assets.</li>
+</ul>
+<p>Especially, the origin is null, therefore, you need set &#34;*&#34; for Access-Control-Allow-Origin response header when you deliver your Web content on Firebase Hosting. Also, it needs to turn off each cache mechanism so that your Web content can be displayed normally.</p>
+<p>Replace the content with the following code in the firebase.json file.</p>
+<pre><code>{
+  &#34;hosting&#34;: {
+    &#34;public&#34;: &#34;public&#34;,
+    &#34;ignore&#34;: [
+      &#34;firebase.json&#34;,
+      &#34;**/.*&#34;,
+      &#34;**/node_modules/**&#34;
+    ],
+    &#34;headers&#34;: [
+      {
+        &#34;source&#34;: &#34;**&#34;,
+        &#34;headers&#34;: [
+          {
+            &#34;key&#34;: &#34;Cache-Control&#34;,
+            &#34;value&#34;: &#34;no-cache,no-store,must-revalidate&#34;
+          },
+          {
+            &#34;key&#34;: &#34;Access-Control-Allow-Origin&#34;,
+            &#34;value&#34;: &#34;*&#34;
+          },
+          {
+            &#34;key&#34;: &#34;Access-Control-Expose-Headers&#34;,
+            &#34;value&#34;: &#34;ETag&#34;
+          }
+        ]
+      }
+    ]
+  }
+}</code></pre>
+<h2 is-upgraded><strong>Create a template for Web page</strong></h2>
+<p>Here, we create files which become as a base for Web page displayed on Interactive Canvas. First, create a new directory to put each file with the following commands. </p>
+<pre><code>$ cd public
+$ mkdir css
+$ mkdir images
+$ mkdir js
+$ cd ..</code></pre>
+<h3 is-upgraded>Create Stylesheet</h3>
+<p>Next, we create a stylesheet to define a design of the Web page. Create a new file named &#34;public/css/index.css&#34; which has the following content.</p>
+<pre><code>html {
+  display: flex;
+  height: 100%;
+}
+
+body {
+  display: flex;
+  flex: 1;
+  margin: 0;
+  background-color: white;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+div.container {
+  width: 100%;
+  text-align: center;
+}
+
+#welcome {
+  display: block;
+}
+
+#welcome img {
+  flex: 1;
+  animation: rotate-anime 3s linear infinite;
+}
+
+@keyframes rotate-anime {
+  0%  {transform: rotate(0);}
+  100%  {transform: rotate(360deg);}
+}
+
+#vs {
+  display: none;
+}
+
+#result {
+  display: none;
+}
+
+.result-row {
+  display: flex;
+}
+
+.result-row div {
+  flex: 1;
+}
+
+#message {
+  display: none;
+  font-size: 48px;
+}</code></pre>
+<h3 is-upgraded>Create HTML file</h3>
+<p>After generating the code set with firebase command, the &#34;public/index.html&#34; file has already been created. Replace the content of the index.html file with the following content.</p>
+<pre><code>&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+  &lt;head&gt;
+    &lt;meta charset=&#34;utf-8&#34; /&gt;
+    &lt;meta name=&#34;viewport&#34; content=&#34;width=device-width, initial-scale=1&#34; /&gt;
+    &lt;title&gt;Rock, Paper, Scissors!&lt;/title&gt;
+    &lt;link rel=&#34;shortcut icon&#34; type=&#34;image/x-icon&#34; href=&#34;data:image/x-icon;,&#34; /&gt;
+    &lt;link rel=&#34;stylesheet&#34; href=&#34;https://www.gstatic.com/assistant/immersivecanvas/css/styles.css&#34; /&gt;
+    &lt;link rel=&#34;stylesheet&#34; href=&#34;css/index.css&#34; /&gt;
+    &lt;script src=&#34;https://www.gstatic.com/assistant/immersivecanvas/js/immersive_canvas_api.js&#34;&gt;&lt;/script&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;div class=&#34;container&#34;&gt;
+      &lt;div id=&#34;welcome&#34;&gt;
+        &lt;img src=&#34;images/rock.png&#34; /&gt;
+        &lt;img src=&#34;images/scissors.png&#34; /&gt;
+        &lt;img src=&#34;images/paper.png&#34; /&gt;
+      &lt;/div&gt;
+      &lt;div id=&#34;vs&#34;&gt;
+        &lt;img src=&#34;images/vs.png&#34; /&gt;
+      &lt;/div&gt;
+      &lt;div id=&#34;result&#34;&gt;
+        &lt;div class=&#34;result-row&#34;&gt;
+          &lt;div&gt;
+            &lt;img id=&#34;user-choice&#34; src=&#34;&#34; /&gt;
+          &lt;/div&gt;
+          &lt;div&gt;
+            &lt;img id=&#34;action-choice&#34; src=&#34;&#34; /&gt;
+          &lt;/div&gt;
+        &lt;/div&gt;
+        &lt;div id=&#34;message&#34;&gt;
+        &lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+    &lt;script src=&#34;js/index.js&#34;&gt;&lt;/script&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</code></pre>
+<p>A Web page for Interactive Canvas needs to fulfill the following.</p>
+<ul>
+<li>Load the stylesheet below.<br>https://www.gstatic.com/assistant/immersivecanvas/css/styles.css</li>
+<li>Load the JavaScript file below.<br>https://www.gstatic.com/assistant/immersivecanvas/js/immersive_canvas_api.js</li>
+</ul>
+<p>Also, we recommend that the Web page is created as a responsive and SPA (Single Page Application).</p>
+<p>In this codelab, mainly three structures are operated in the HTML file.</p>
+<ul>
+<li><strong>div#welcome</strong> - The screen so that users choose one of rock, paper or scissors. Each image is displayed on this.</li>
+<li><strong>div#vs</strong> - The screen which represents the action is thinking what it shows. The image represents &#34;Duel&#34; is displayed.</li>
+<li><strong>div#result</strong> - The screen to display the result of rock-paper-scissors. Both images the user and the action showed are displayed. The message represents whether the user won or not is also displayed.</li>
+</ul>
+<p>According to the progress of the conversation, one of the three elements above is displayed.</p>
+<h3 is-upgraded>Create JavaScript file</h3>
+<p>A Web page interacts with a Fulfillment on running Interactive Canvas. The JavaScript code changes the content of the Web page dynamically.</p>
+<p>Here, we create an empty JavaScript file. Create the index.js file in the public/js directory with an empty content.</p>
+<pre><code>&#39;use strict&#39;;
+
+// TODO: Write your code here.</code></pre>
+<h3 is-upgraded>Download image files</h3>
+<p>In this codelab, we use some images. Download the zip file with the image files from the following URL.</p>
+<p><a href="https://www.eisbahn.jp/codelabs/actions-with-interactive-canvas/images.zip" target="_blank">Download image files</a></p>
+<p>Then, execute the following commands to put these images files into the public/images directory.</p>
+<pre><code>$ cd public/images
+$ unzip &lt;The path to images.zip&gt;
+$ cd ../..</code></pre>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Display the Interactive Canvas" duration="10">
+        <p>The preparations have been completed. Ok, let&#39;s get started to build our action.</p>
+<p>We build a &#34;rock-paper-scissors game&#34; action in this codelab. When invoking the action, the action asks the user &#34;Which do you show? Rock, paper or scissors?&#34; by voice. At the same time, three images represents rock, paper and scissors are displayed on the Smart Display. The user can&#39;t specify the hand by voice only, but the user also can specify it by tapping each image on the screen.</p>
+<p class="image-container"><img style="width: 602.00px" src="img/4ed725c23fbfa669.png"></p>
+<h2 is-upgraded><strong>Configure the Default Welcome Intent</strong></h2>
+<p>After creating Dialogflow agent, the following two intents are created automatically.</p>
+<ul>
+<li><strong>Default Welcome Intent</strong> - The intent at the action invoked.</li>
+<li><strong>Default Fallback Intent</strong> - The intent to handle for when no any intents are matched.</li>
+</ul>
+<p>After just cretating the Dialogflow agent, the two intents above are configured without fulfillment. Here, we configure the Default Welcome Intent to turn on the fulfillment.</p>
+<p>Do the following steps to enable Fulfillment for the Default Welcome Intent.</p>
+<ol type="1" start="1">
+<li>In the left navigation on the Dialogflow Console, click <strong>Intens</strong>.</li>
+<li>In the center of the intent list, click <strong>Default Welcome Intent</strong>.</li>
+<li>Expand the <strong>Fulfillment</strong> section on the bottom of the Default Welcome Intent configuration page,  turn on the <strong>Enable webhook call for this intent</strong>.</li>
+</ol>
+<p class="image-container"><img style="width: 602.00px" src="img/3d172e69568a6e13.png"></p>
+<ol type="1" start="4">
+<li>Push <strong>Save</strong> button.</li>
+</ol>
+<h2 is-upgraded><strong>Implement the Default Welcome Intent handler</strong></h2>
+<p>We use an ImmersiveResponse object provided by Actions on Google Client Library so that we display a screen on Smart Display with Interactive Canvas. This object is used to send information (which web page is displayed, how the conversation state is changed according to interaction with the user) to the screen on Smart Display.</p>
+<p>Find the line like below in the functions/index.js file.</p>
+<pre><code>// TODO: Write your code here.</code></pre>
+<p>Add the following code under the line above.</p>
+<pre><code>app.intent(&#39;Default Welcome Intent&#39;, conv =&gt; {
+  conv.ask(&#39;Which do you want to show? Rock? Paper? Or, Scissors?&#39;);
+  conv.ask(new ImmersiveResponse({
+    url: `https://${firebaseConfig.projectId}.firebaseapp.com/`
+  }));
+});</code></pre>
+<p>In the first conv.ask() calling, the code specifies the phrase to ask the user by Google Assistant.</p>
+<p>And, to draw the Web page on the screen with Interactive Canvas, the code calls the conv.ask() method with generated ImmersiveResponse object which has the URL of the Web page. Google Assistant draws the Web page on Smart Display based on the URL specified by the url property.</p>
+<p>This URL set here is the URL of the Web page delivered from Firebase Hosting. We construct the URL including the Actions Project ID retrieved from process.env.FIREBASE_CONFIG dynamically.</p>
+<h2 is-upgraded><strong>Send a phrase from JavaScript</strong></h2>
+<p>Your action can display visual information on the Smart Display with Interactive Canvas. If the screen supports a Touch manipulation, your action can handle the event by JavaScript. And, like the same as users say a phrase by voice, your action can send the phrase to Google Assistant as the user says.</p>
+<p>The <a href="https://developers.google.com/actions/interactivecanvas/reference/assistantcanvas" target="_blank">assistantCanvas</a> object is provided for Interactive Canvas. When your action passes a string to the sendTextQuery() method of the assistantCanvas object, the phrase is sent to the Google Assistant.</p>
+<p>Here, we add event handlers to each element of three images (rock, paper and scissors). And, add a process to send a phrase represents the hand which the user tapped to Google Assistant, for when one of the elements is tapped.</p>
+<p>There is the div element which has the &#34;welcome&#34; value as ID in the public/index.html file.</p>
+<pre><code>      &lt;div id=&#34;welcome&#34;&gt;
+        &lt;img src=&#34;images/rock.png&#34; /&gt;
+        &lt;img src=&#34;images/scissors.png&#34; /&gt;
+        &lt;img src=&#34;images/paper.png&#34; /&gt;
+      &lt;/div&gt;</code></pre>
+<p>There are three img elements as each child element of the div element. We add a data-choice attribute for each img element. Each element has each one of rock, paper or scissors.</p>
+<pre><code>      &lt;div id=&#34;welcome&#34;&gt;
+        &lt;img src=&#34;images/rock.png&#34; data-choice=&#34;rock&#34; /&gt;
+        &lt;img src=&#34;images/scissors.png&#34; data-choice=&#34;scissors&#34; /&gt;
+        &lt;img src=&#34;images/paper.png&#34; data-choice=&#34;paper&#34; /&gt;
+      &lt;/div&gt;</code></pre>
+<p>Next, register an event handler to each img element in public/js/index.js file. You see the following line in public/js/index.js file.</p>
+<pre><code>// TODO: Write your code here.</code></pre>
+<p>We add the code below under the line above.</p>
+<pre><code>document.querySelectorAll(&#39;#welcome img&#39;).forEach(img =&gt; {
+  img.addEventListener(&#39;click&#39;, elem =&gt; {
+    assistantCanvas.sendTextQuery(elem.target.dataset.choice);
+  });
+});</code></pre>
+<p>In the event handler, add a click event handler to an img element. And, the handler retrieves the hand name of rock-paper-scissors related to the dataset.choice of the target img element tapped. Last, the code passes the name to the sendTextQuery() method of the assistantCanvas object from the JavaScript code, like as the phrase is sent to the Google Assistant.</p>
+<h2 is-upgraded><strong>Test Your Action</strong></h2>
+<p>Now, let&#39;s deploy your current code to Firebase and test it. Execute the following command in your terminal.</p>
+<pre><code>$ firebase deploy</code></pre>
+<aside class="warning"><p>If you see an error message that says &#34;An unexpected error has occurred from the CLI&#34;, try running the firebase deploy command again.</p>
+</aside>
+<p>After a few minutes, you should see &#34;<strong>Deploy complete!</strong>&#34;, which indicates that you&#39;ve successfully deployed your webhook to Firebase.</p>
+<p>Next, we invoke your action on Actions Console Simulator.</p>
+<aside class="special"><p><strong>Tip:</strong> You can find the most recent information about using the Actions simulator in the <a href="https://developers.google.com/actions/tools/simulator" target="_blank">Actions simulator guide</a>. Please refer there if you run into any issues following the steps listed below.</p>
+</aside>
+<p>To test out your Action in the Actions simulator:</p>
+<ol type="1" start="1">
+<li>Open <a href="https://console.actions.google.com/" target="_blank">Actions console</a>.</li>
+<li>If other project is selected on the top of the page, select the Actions project you created for this codelab.</li>
+</ol>
+<p class="image-container"><img style="width: 460.00px" src="img/21a105124eeaa016.png"></p>
+<ol type="1" start="3">
+<li>In the top navigation, click <strong>Test</strong>.</li>
+<li>On the <strong>Surface</strong> configuration item of Actions Simulator, click &#34;Smart Display&#34;.</li>
+</ol>
+<p class="image-container"><img style="width: 589.00px" src="img/1c65bedaf882137a.png"></p>
+<ol type="1" start="5">
+<li>To test your action, type &#34;talk to my test app&#34; into the <strong>Input</strong> field and press the Enter key.</li>
+<li>If the <strong>DISPLAY</strong> tab not selected, click the Display tab.</li>
+<li>You see that each image (rock, paper and scissors) is revolving. Click one of them. So, confirm whether the name of the image you clicked is sent to Google Assistant.</li>
+<li>Type &#34;cancel&#34;. Then, the conversation is ended.</li>
+</ol>
+<aside class="warning"><p>If you invoke your action when the &#34;Speaker&#34; is selected  as <strong>Surface</strong>, Google Assistant says an error message like &#34;My test app isn&#39;t responding right now. Try again soon.&#34;. Invoke your action again after selecting &#34;Smart Display&#34; or &#34;Phone&#34;.</p>
+</aside>
+<p class="image-container"><img style="width: 602.00px" src="img/d6a33f30b13d3cd3.png"></p>
+<p>At this time, the intent to handle each hand name is not defined yet, therefore, it is recognized as Default Fallback Intent.</p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Update the Interactive Canvas" duration="10">
+        <p>Now, users can invoke your action and they can show one of rock, paper or scissors. What you will do next is to implement the feature that your code decides the hand which the action shows in random order and compare the user&#39;s hand with the action&#39;s hand and decides whether the user win or not. Then, your code changes the screen on Smart Display according to the result.</p>
+<p>Here, we need to define more detail steps. After users say one of rock, paper or scissors to Google Assistant, implement the following behaviors.</p>
+<ol type="1" start="1">
+<li>Dialogflow recognizes what one of the rock, paper or scissors was said, and it notifies this to your fulfillment.</li>
+<li>Your fulfillment determines a hand of the action in random order. And, it compares the hand with the received user&#39;s hand, then decides whether the user won or not.</li>
+<li>Your fulfillment returns the SimpleResponse with the phrase to notify the decision to the user to Google Assistant. At the same time, your fulfillment creates the ImmersiveResponse object with user&#39;s hand, action&#39;s hand and the message represents the decision, and it also is returned to the Google Assistant.</li>
+<li>The JavaScript code running on the screen catches the information returned from the fulfillment. Then, the code changes the image represents a duel.</li>
+<li>After a certain time, the code changes images: user&#39;s hand, action&#39;s hand and the message represents the decision.</li>
+</ol>
+<p class="image-container"><img style="width: 602.00px" src="img/23bf3b1597abef4e.png"></p>
+<p class="image-container"><img style="width: 602.00px" src="img/4adcb4774f1a6900.png"></p>
+<h2 is-upgraded><strong>Define entity of each hand of rock-paper-scissors</strong></h2>
+<p>To correctly recognize the phrase represents one of rock, paper or scissors the user said to Google Assistant, we define an entity on your Dialogflow agent.</p>
+<p>Define the entity by the following steps.</p>
+<ol type="1" start="1">
+<li>Open <a href="https://console.dialogflow.com/" target="_blank">Dialogflow Console</a>.</li>
+<li>In the left navigation, move to <strong>Entities</strong>.</li>
+<li>Click the <strong>CREATE ENTITY</strong> on the top of the right.</li>
+<li>Type &#34;user-choice&#34; as Entity name.</li>
+<li>Click <strong>Click here to edit entry</strong>,  and type the following.</li>
+</ol>
+<ul>
+<li>Type &#34;rock&#34; into <strong>Enter reference value</strong>.</li>
+<li>Type &#34;stone&#34; into <strong>Enter synonym</strong>.</li>
+</ul>
+<ol type="1" start="6">
+<li>Type the following as well.</li>
+</ol>
+<ul>
+<li><strong>Enter reference value</strong>: &#34;paper&#34;</li>
+<li><strong>Enter reference value</strong>: &#34;scissors&#34;</li>
+</ul>
+<ol type="1" start="7">
+<li>Click <strong>SAVE</strong> button.</li>
+</ol>
+<p class="image-container"><img style="width: 602.00px" src="img/2abf1760f16f66e7.png"></p>
+<h2 is-upgraded><strong>Define intent to handle rock, paper or scissors</strong></h2>
+<p>Next, we define an intent to recognize the phrase represents the hand of rock-paper-scissors the user said with the user-choice entity we defined. Define the intent by the following steps.</p>
+<ol type="1" start="1">
+<li>Open <a href="https://console.dialogflow.com/" target="_blank">Dialogflow Console</a>.</li>
+<li>In the left navigation, move to <strong>Intents</strong>.</li>
+<li>Click the <strong>CREATE INTENT</strong>.</li>
+<li>Type &#34;Show&#34; into <strong>Intent name</strong>.</li>
+<li>Click the <strong>ADD TRAINING PHRASES</strong>. Then, type the following into <strong>Add user expression</strong>.</li>
+</ol>
+<ul>
+<li>rock</li>
+<li>scissors</li>
+<li>paper</li>
+</ul>
+<p class="image-container"><img style="width: 602.00px" src="img/d2bee267f50fd6eb.png"></p>
+<ol type="1" start="6">
+<li>Expand the <strong>Fulfillment</strong>, and click the <strong>ENABLE FULFILLMENT</strong>. Then, turn on the <strong>Enable webhook call for this intent</strong>.</li>
+<li>Click the <strong>SAVE</strong> button.</li>
+</ol>
+<h2 is-upgraded><strong>Define Show intent handler</strong></h2>
+<p>We defined the Show intent on Dialogflow agent. That is, when users says one of tock. paper or scissors to Google Assistant, your fulfillment is called. In this section, we add a Show intent handler code to your fulfillment implemented with Cloud Functions for Firebase.</p>
+<p>First, we define an object to determine a message of decision of the duel for each combination of user&#39;s hand and action&#39;s hand. We find the following line in functions/index.js file.</p>
+<pre><code>// TODO: Write your code here.</code></pre>
+<p>Add the following code under the line above.</p>
+<pre><code>const judgeMap = {
+  rock: {
+    rock: &#39;Same.&#39;,
+    paper: &#39;You lost.&#39;,
+    scissors: &#39;You win!&#39;
+  },
+  paper: {
+    rock: &#39;You win!&#39;,
+    paper: &#39;Same.&#39;,
+    scissors: &#39;You lost.&#39;
+  },
+  scissors: {
+    rock: &#39;You lost.&#39;,
+    paper: &#39;You win!&#39;,
+    scissors: &#39;Same.&#39;
+  }
+};</code></pre>
+<p>On the heels of the code above, add the Show intent handler code below.</p>
+<pre><code>app.intent(&#39;Show&#39;, (conv, param) =&gt; {
+  // Retrieve the user&#39;s hand.
+  const userChoice = param[&#39;user-choice&#39;].toLowerCase();
+  // Determine the action&#39;s hand in random order.
+  const actionChoice = [&#39;rock&#39;, &#39;paper&#39;, &#39;scissors&#39;][Math.floor(Math.random() * 3)];
+  // Get the message represents the duel.
+  const message = judgeMap[userChoice][actionChoice];
+  // Construct the reply message with SSML.
+  const ssml = `
+    &lt;speak&gt;
+      &lt;p&gt;Ok, I decided my hand, too.&lt;/p&gt;
+      &lt;wait time=&#34;500ms&#34; /&gt;
+      &lt;p&gt;Rock, paper, scissors, shoot!&lt;/p&gt;
+      &lt;wait time=&#34;400ms&#34; /&gt;
+      &lt;p&gt;You showed ${userChoice}.&lt;/p&gt;
+      &lt;p&gt;I showed ${actionChoice}.&lt;/p&gt;
+      &lt;p&gt;${message}&lt;/p&gt;
+      &lt;wait time=&#34;400ms&#34; /&gt;
+      &lt;p&gt;Do you want to play again?&lt;/p&gt;
+    &lt;/speak&gt;`;
+  conv.ask(ssml);
+  // ImmersiveResponse object with information to update the screen.
+  conv.ask(new ImmersiveResponse({
+    state: {
+      scene: &#39;result&#39;,
+      userChoice,
+      actionChoice,
+      message
+    }
+  }));
+});</code></pre>
+<p>According to the Show intent defined in Dialogflow agent, the user-choice parameter value (userChoice) is determned. On the other hand, the user-choice parameter value (userChoice) is decided depending on the user phrase. Your code get it from the param argument, and change it to lowercase. Next, your code decides action&#39;s hand (actionChoice) in random order with Math.random(). And, the code determines a message (message) represents the result of the duel with the judgeMap object you defined.</p>
+<p>The phrase &#34;Rock, paper, scissors. shoot!&#34; and the result of the duel are notified by the two ways below.</p>
+<ul>
+<li>The phrase with SSML.</li>
+<li>The screen change.</li>
+</ul>
+<p>We customize the voice Google Assistant says with <a href="https://developers.google.com/actions/reference/ssml" target="_blank">SSML</a>. In this code lab, we use the wait tag to create silence between sentences.</p>
+<p>And, to update the content of the screen on the Smart Display, your code creates the ImmersiveResponse object with the following information and passes it to conv.ask() method.</p>
+<ul>
+<li>scene: The &#34;result&#34; value to move to the &#34;Duel result&#34; scene.</li>
+<li>userChoice: The string represents the user&#39;s hand.</li>
+<li>actionChoice: The string represents the action&#39;s hand.</li>
+<li>message: The message represents the duel result.</li>
+</ul>
+<p>Your code can specify saying a phrase and updating a screen to Google Assistant by passing SSML string and ImmersiveResponse object to conv.ask() method.</p>
+<h2 is-upgraded><strong>Handle screen update request</strong></h2>
+<p>After Google Assistant receives the ImmersiveResponse object sent from your fulfillment, your JavaScript code is executed to update the screen on Smart Display. For instance, you need to register your callback function called at the timing when it is necessary to update the screen (that is, the timing is the ImmersiveResponse object is returned from your fulfillment).</p>
+<p>You can find the line like below in public/js/index.js file.</p>
+<pre><code>// TODO: Write your code here.</code></pre>
+<p>Add the following code under the line above.</p>
+<pre><code>assistantCanvas.ready({
+  onUpdate(state) {
+    // Display the duel image.
+    if (state.scene === &#39;result&#39;) {
+      document.querySelector(&#39;#welcome&#39;).style.display = &#39;none&#39;;
+      document.querySelector(&#39;#vs&#39;).style.display = &#39;block&#39;;
+      document.querySelector(&#39;#user-choice&#39;).src = `images/${state.userChoice}.png`;
+      document.querySelector(&#39;#action-choice&#39;).src = `images/${state.actionChoice}.png`;
+      document.querySelector(&#39;#message&#39;).innerText = state.message;
+      // Display the result.
+
+    }
+    // Initialize the screen.
+
+  }
+});</code></pre>
+<p>You can set an object which has callback functions to <a href="https://developers.google.com/actions/interactivecanvas/reference/assistantcanvas#ready" target="_blank">ready()</a> method of the assistantCanvas object. There are following two callback functions.</p>
+<ul>
+<li><a href="https://developers.google.com/actions/interactivecanvas/reference/assistantcanvas#onupdate" target="_blank"><strong>onUpdate()</strong></a> - This is called when your fulfillment returns an ImmersiveResponse object with the state value.</li>
+<li><a href="https://developers.google.com/actions/interactivecanvas/reference/assistantcanvas#onttsmark" target="_blank"><strong>onTtsMark()</strong></a> - This is called when starting saying by Google Assistant, the saying finished and a mark tag in SSML is evaluated.</li>
+</ul>
+<aside class="warning"><p>Currently, the onTtsMark() callback function can receive two argument values. One is &#34;START&#34; when Google Assistant starts to say a phrase. Second one is &#34;END&#34; when Google Assistant finishes saying the phrase. In the specification, the onTtsMark() callback function can be called at each mark tag in SSML string. However, the onTtsMark() callback function may not be called sometimes due to a bug currently.</p>
+</aside>
+<p>The state object which your fulfillment passed to the ImmersiveResponse object is passed to the onUpdate() callback function without any change. Here, your code determines the screen it should render based on the scene value in the state object. At the same time, your code changes images according to user&#39;s and action&#39;s hands and displays the message represents the result of duel.</p>
+<h2 is-upgraded><strong>Update the screen against timings during saying phrase</strong></h2>
+<p>Here, let&#39;s try to add a jigalorum at update timing during saying the phrase and updating the screen when Google Assistant says the result of rock-paper-scissors duel to the user. For instance, we implement the following behavior.</p>
+<ol type="1" start="1">
+<li>Display the screen represents the duel (the div element which has &#34;vs&#34; value as ID value to display the  &#34;public/images/vs.png&#34; image file).</li>
+<li>Say &#34;Ok, I decided my hand, too. Rock, paper, scissors, shoot!&#34;.</li>
+<li>Display the screen represents the result (the div element which has &#34;result&#34; value as ID value to display images of user&#39;s and action&#39;s hands and the message represents the result of the duel).</li>
+<li>Say &#34;You showed rock. I showed scissors. You win! Do you want to play again?&#34;.</li>
+</ol>
+<p>To implement this behavior, we use the setTimeout() function of JavaScript.</p>
+<aside class="warning"><p>In the specification, the onTtsMark() should be called based on each &lt;mark&gt; tag in SSML string. Therefore, we should turn on/off the visibility of the div element with the behavior. However, because there is a bug currently about the feature, we use the way using setTimeout() function in this codelab.</p>
+</aside>
+<p>You can find the following line in public/js/index.js file.</p>
+<pre><code>// Display the result.</code></pre>
+<p>Add the code below under the line above.</p>
+<pre><code>setTimeout(() =&gt; {
+  document.querySelector(&#39;#vs&#39;).style.display = &#39;none&#39;;
+  document.querySelector(&#39;#result&#39;).style.display = &#39;block&#39;;
+  document.querySelector(&#39;#message&#39;).style.display = &#39;block&#39;;
+}, 5000);</code></pre>
+<p>The code above specifies to execute the behavior described the above step 3 after 5 seconds to the setTimeout() function. This brings more rich user experience between combinations of saying and rendering.</p>
+<h2 is-upgraded><strong>Test you action</strong></h2>
+<p>Now, you can play this rock-paper-scissors game action. Let&#39;s deploy your current code to Firebase and test it. Execute the following command in your terminal.</p>
+<pre><code>$ firebase deploy</code></pre>
+<aside class="warning"><p>If you see an error message that says &#34;An unexpected error has occurred from the CLI&#34;, try running the firebase deploy command again.</p>
+</aside>
+<p>After a few minutes, you should see &#34;<strong>Deploy complete!</strong>&#34;, which indicates that you&#39;ve successfully deployed your webhook to Firebase.</p>
+<p>Next, we invoke your action on Actions Console Simulator.</p>
+<aside class="special"><p><strong>Tip:</strong> You can find the most recent information about using the Actions simulator in the <a href="https://developers.google.com/actions/tools/simulator" target="_blank">Actions simulator guide</a>. Please refer there if you run into any issues following the steps listed below.</p>
+</aside>
+<p>To test out your Action in the Actions simulator:</p>
+<ol type="1" start="1">
+<li>Open <a href="https://console.actions.google.com/" target="_blank">Actions console</a>.</li>
+<li>If other project is selected on the top of the page, select the Actions project you created for this codelab.</li>
+</ol>
+<p class="image-container"><img style="width: 460.00px" src="img/21a105124eeaa016.png"></p>
+<ol type="1" start="3">
+<li>In the left navigation, click <strong>Test &gt; Simulator</strong>.</li>
+<li>On the <strong>Surface</strong> configuration item of Actions Simulator, click &#34;Smart Display&#34;.</li>
+</ol>
+<p class="image-container"><img style="width: 589.00px" src="img/1c65bedaf882137a.png"></p>
+<ol type="1" start="5">
+<li>To test your action, type &#34;talk to my test app&#34; into the <strong>Input</strong> field and press the Enter key.</li>
+<li>If the <strong>DISPLAY</strong> tab not selected, click the Display tab.</li>
+<li>You see that each image (rock, paper and scissors) is revolving. Click one of them. So, confirm whether the name of the image you clicked is sent to Google Assistant.</li>
+<li>Type &#34;cancel&#34;. Then, the conversation is ended.</li>
+</ol>
+<aside class="warning"><p>If you invoke your action when the &#34;Speaker&#34; is selected  as <strong>Surface</strong>, Google Assistant says an error message like &#34;My test app isn&#39;t responding right now. Try again soon.&#34;. Invoke your action again after selecting &#34;Smart Display&#34; or &#34;Phone&#34;.</p>
+</aside>
+<p class="image-container"><img style="width: 602.00px" src="img/7852e376753d4e17.png"></p>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Implement remaining functions" duration="10">
+        <p>Here, you already have a code set to play the &#34;rock-paper-scissors game&#34;. In this section, we implement remaining functions. They are the following.</p>
+<ul>
+<li>Ask whether the user wants to play this game again or not.</li>
+<li>End the conversation anytime.</li>
+</ul>
+<h2 is-upgraded><strong>Add Follow-up intent</strong></h2>
+<p>After notifying the result of this game for the user, Google Assistant asks the user to want to play this game again. The user need to answer either &#34;Play again&#34; or &#34;End the conversation&#34; for the asking. To implement such feature, the follow-up intent is very convenient.</p>
+<p>Ok, register a new follow-up intent by the following steps.</p>
+<ol type="1" start="1">
+<li>Open <a href="https://console.dialogflow.com/" target="_blank">Dialogflow Console</a>.</li>
+<li>In the left navigation, move to <strong>Intents</strong>.</li>
+<li>When you move your mouse cursor on the row of the &#34;Show&#34; intent. Click it.</li>
+</ol>
+<p class="image-container"><img style="width: 602.00px" src="img/47b26dce64059c57.png"></p>
+<ol type="1" start="4">
+<li>Open the popup to specify a target intent which you want to create a new follow-up intent. Add <strong>yes</strong> and <strong>no</strong> from the list.</li>
+</ol>
+<p class="image-container"><img style="width: 602.00px" src="img/276903ae940f04b2.png"></p>
+<p>The &#34;Show -no&#34; intent is the intent to end the conversation. Configure it by the following steps.</p>
+<ol type="1" start="1">
+<li>In the left navigation, move to <strong>Intents</strong>.</li>
+<li>Click the &#34;Show - no&#34; in the intent list.</li>
+<li>Type &#34;Thank you for playing. See you again!&#34; in the <strong>Text response</strong>.</li>
+<li>Turn on the <strong>Set this intent as end of conversation</strong>.</li>
+<li>Click the <strong>SAVE</strong> button.</li>
+</ol>
+<p class="image-container"><img style="width: 602.00px" src="img/1fae7bc633e0df88.png"></p>
+<p>The &#34;Show - yes&#34; intent is the intent to specify to play again. Because this intent effects to the screen, it is necessary to call your fulfillment. Configure this &#34;Show - yes&#34; intent by the following steps.</p>
+<ol type="1" start="1">
+<li>In the left navigation, move to <strong>Intents</strong>.</li>
+<li>Click the &#34;Show - yes&#34; from the intent list.</li>
+<li>Expand <strong>Fulfillment</strong>,  click the <strong>ENABLE FULFILLMENT</strong>. Then, turn on the <strong>Enable webhook call for this intent</strong>.</li>
+<li>Click the <strong>SAVE</strong> button.</li>
+</ol>
+<p>And, add the &#34;Show - yes&#34; intent handler to the functions/index.js file. You can find the following line in the functions/index.js file.</p>
+<pre><code>// TODO: Write your code here.</code></pre>
+<p>Add the following code under the line above.</p>
+<pre><code>app.intent(&#39;Show - yes&#39;, conv =&gt; {
+  conv.ask(&#39;Ok. Which do you want to show? Rock? Paper? Or, Scissors?&#39;);
+  conv.ask(new ImmersiveResponse({
+    state: {
+      scene: &#39;restart&#39;
+    }
+  }));
+});</code></pre>
+<p>By specifying the &#34;restart&#34; value to the scene property, your code specifies to go back to the initial state as the update behavior for the screen.</p>
+<p>Add the code in the public/js/index.js file to change the screen to initial state based on the content of this ImmersiveResponse object. You can find the following line in the public/js/index.js file.</p>
+<pre><code>// Initialize the screen.</code></pre>
+<p>Add the following code under the line above.</p>
+<pre><code>if (state.scene === &#39;restart&#39;) {
+  document.querySelector(&#39;#welcome&#39;).style.display = &#39;block&#39;;
+  document.querySelector(&#39;#vs&#39;).style.display = &#39;none&#39;;
+  document.querySelector(&#39;#result&#39;).style.display = &#39;none&#39;;
+  document.querySelector(&#39;#message&#39;).style.display = &#39;none&#39;;
+}</code></pre>
+<p>This code changes the visibility to display only the &#34;div&#34; element which has the &#34;welcome&#34; value as ID value so that the screen goes back to initial state.</p>
+<h2 is-upgraded><strong>Add End intent</strong></h2>
+<p>Last, we add a new intent to end the action. Add the end intent by the following steps.</p>
+<ol type="1" start="1">
+<li>Open <a href="https://console.dialogflow.com/" target="_blank">Dialogflow Console</a>.</li>
+<li>In the left navigation, click the <strong>Intents</strong>.</li>
+<li>Click the <strong>CREATE INTENT</strong> button.</li>
+<li>Type &#34;End&#34; to <strong>Intent name</strong>.</li>
+<li>Click the <strong>ADD TRAINING PHRASES</strong>. Then, fill in phases to the <strong>Add user expression</strong>. The phrases are strings that users may say to end the action.</li>
+</ol>
+<ol type="1" start="1">
+<li>Stop</li>
+<li>End</li>
+<li>Bye-bye</li>
+</ol>
+<ol type="1" start="6">
+<li>Type &#34;Thank you for playing. See you again!&#34; to <strong>Text response</strong>.</li>
+<li>Turn on the <strong>Set this intent as end of conversation</strong>.</li>
+<li>Click the <strong>SAVE</strong> button.</li>
+</ol>
+<p class="image-container"><img style="width: 602.00px" src="img/b09956cfe26bed23.png"></p>
+<h2 is-upgraded><strong>Test</strong></h2>
+<p>Finally, the action has just been completed! Let&#39;s deploy your current code to Firebase and test it. Execute the following command in your terminal.</p>
+<pre><code>$ firebase deploy</code></pre>
+<aside class="warning"><p>If you see an error message that says &#34;An unexpected error has occurred from the CLI&#34;, try running the firebase deploy command again.</p>
+</aside>
+<p>After a few minutes, you should see &#34;<strong>Deploy complete!</strong>&#34;, which indicates that you&#39;ve successfully deployed your webhook to Firebase.</p>
+<p>Next, we invoke your action on Actions Console Simulator.</p>
+<aside class="special"><p><strong>Tip:</strong> You can find the most recent information about using the Actions simulator in the <a href="https://developers.google.com/actions/tools/simulator" target="_blank">Actions simulator guide</a>. Please refer there if you run into any issues following the steps listed below.</p>
+</aside>
+<p>To test out your Action in the Actions simulator:</p>
+<ol type="1" start="1">
+<li>Open <a href="https://console.actions.google.com/" target="_blank">Actions console</a>.</li>
+<li>If other project is selected on the top of the page, select the Actions project you created for this codelab.</li>
+</ol>
+<p class="image-container"><img style="width: 460.00px" src="img/21a105124eeaa016.png"></p>
+<ol type="1" start="3">
+<li>In the left navigation, click <strong>Test &gt; Simulator</strong>.</li>
+<li>On the <strong>Surface</strong> configuration item of Actions Simulator, click &#34;Smart Display&#34;.</li>
+</ol>
+<p class="image-container"><img style="width: 589.00px" src="img/1c65bedaf882137a.png"></p>
+<ol type="1" start="5">
+<li>To test your action, type &#34;talk to my test app&#34; into the <strong>Input</strong> field and press the Enter key.</li>
+<li>If the <strong>DISPLAY</strong> tab not selected, click the Display tab.</li>
+<li>You see that each image (rock, paper and scissors) is revolving. Click one of them. So, confirm whether the name of the image you clicked is sent to Google Assistant.</li>
+<li>Type &#34;yes&#34;. Then, the game is started again.</li>
+</ol>
+<aside class="warning"><p>If you invoke your action when the &#34;Speaker&#34; is selected  as <strong>Surface</strong>, Google Assistant says an error message like &#34;My test app isn&#39;t responding right now. Try again soon.&#34;. Invoke your action again after selecting &#34;Smart Display&#34; or &#34;Phone&#34;.</p>
+</aside>
+
+
+      </google-codelab-step>
+    
+      <google-codelab-step label="Next steps" duration="1">
+        <p><strong>Congratulation!</strong></p>
+<p>You&#39;ve now understand how to build conversational actions with Interactive Canvas for Smart Display..</p>
+<h2 class="checklist" is-upgraded><strong>What we&#39;ve covered</strong></h2>
+<ul class="checklist">
+<li>How to add a visual information with Interactive Canvas to a conversation action.</li>
+<li>How to receive a voice input from a user and update a screen against the input.</li>
+<li>How to receive an event on the screen from a user and do something against the event.</li>
+</ul>
+<h2 is-upgraded><strong>What&#39;s next?</strong></h2>
+<p>To learn more detail about how to use Interactive Canvas, Google has published more rich code sample.</p>
+<ul>
+<li><a href="https://github.com/actions-on-google/dialogflow-interactive-canvas-nodejs" target="_blank">actions-on-google/dialogflow-interactive-canvas-nodejs</a></li>
+</ul>
+<p>You can explore these resources for learning about Actions on Google:</p>
+<ul>
+<li><a href="http://actions.google.com/" target="_blank">actions.google.com</a>: The official documentation site for Actions on Google.</li>
+<li><a href="https://github.com/actions-on-google/" target="_blank">Actions on Google GitHub repo</a>: Sample code and libraries.</li>
+<li><a href="https://dialogflow.com/" target="_blank">Dialogflow.com</a>: The official documentation site for Dialogflow.</li>
+<li><a href="https://plus.google.com/communities/105684267327487893574" target="_blank">Actions on Google Developers</a>: The official Google+ community for developers working with Actions on Google.</li>
+</ul>
+<p>Follow us on Twitter <a href="https://twitter.com/ActionsOnGoogle" target="_blank">@ActionsOnGoogle</a> to stay tuned to our latest announcements, and tweet to <a href="https://twitter.com/hashtag/AoGDevs?src=hash" target="_blank">#AoGDevs</a> to share what you have built!</p>
+<h2 is-upgraded><strong>Feedback survey</strong></h2>
+<p>Before you go, <a href="https://goo.gl/forms/SLcedXyVSNl7RkUc2" target="_blank">please fill out this form</a> to let us know how we&#39;re doing!</p>
+
+
+      </google-codelab-step>
+    
+  </google-codelab>
+
+  <script src="https://storage.googleapis.com/codelab-elements/native-shim.js"></script>
+  <script src="https://storage.googleapis.com/codelab-elements/custom-elements.min.js"></script>
+  <script src="https://storage.googleapis.com/codelab-elements/prettify.js"></script>
+  <script src="https://storage.googleapis.com/codelab-elements/codelab-elements.js"></script>
+
+</body>
+</html>
