@@ -613,13 +613,11 @@ $ cd ../..</code></pre>
   const ssml = `
     &lt;speak&gt;
       &lt;p&gt;Ok, I decided my hand, too.&lt;/p&gt;
-      &lt;wait time=&#34;500ms&#34; /&gt;
       &lt;p&gt;Rock, paper, scissors, shoot!&lt;/p&gt;
-      &lt;wait time=&#34;400ms&#34; /&gt;
       &lt;p&gt;You showed ${userChoice}.&lt;/p&gt;
       &lt;p&gt;I showed ${actionChoice}.&lt;/p&gt;
       &lt;p&gt;${message}&lt;/p&gt;
-      &lt;wait time=&#34;400ms&#34; /&gt;
+      &lt;break time=&#34;400ms&#34; /&gt;
       &lt;p&gt;Do you want to play again?&lt;/p&gt;
     &lt;/speak&gt;`;
   conv.ask(ssml);
@@ -639,7 +637,7 @@ $ cd ../..</code></pre>
 <li>The phrase with SSML.</li>
 <li>The screen change.</li>
 </ul>
-<p>We customize the voice Google Assistant says with <a href="https://developers.google.com/actions/reference/ssml" target="_blank">SSML</a>. In this code lab, we use the wait tag to create silence between sentences.</p>
+<p>We customize the voice Google Assistant says with <a href="https://developers.google.com/actions/reference/ssml" target="_blank">SSML</a>. In this code lab, we use the break tag to create silence between sentences.</p>
 <p>And, to update the content of the screen on the Smart Display, your code creates the ImmersiveResponse object with the following information and passes it to conv.ask() method.</p>
 <ul>
 <li>scene: The &#34;result&#34; value to move to the &#34;Duel result&#34; scene.</li>

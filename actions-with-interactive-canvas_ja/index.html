@@ -619,13 +619,11 @@ const judgeMap = {
   const ssml = `
     &lt;speak&gt;
       &lt;p&gt;はい、私も何を出すか決めました。&lt;/p&gt;
-      &lt;wait time=&#34;500ms&#34; /&gt;
       &lt;p&gt;では、じゃんけんぽん！&lt;/p&gt;
-      &lt;wait time=&#34;400ms&#34; /&gt;
       &lt;p&gt;あなたは、${pronoun[userChoice]}を出しました。&lt;/p&gt;
       &lt;p&gt;私は、${pronoun[actionChoice]}を出しました。&lt;/p&gt;
       &lt;p&gt;${message}&lt;/p&gt;
-      &lt;wait time=&#34;400ms&#34; /&gt;
+      &lt;break time=&#34;400ms&#34; /&gt;
       &lt;p&gt;もう一度遊びますか？&lt;/p&gt;
     &lt;/speak&gt;`;
   conv.ask(ssml);
@@ -645,7 +643,7 @@ const judgeMap = {
 <li>SSMLによる発話。</li>
 <li>画面の更新。</li>
 </ul>
-<p><a href="https://developers.google.com/actions/reference/ssml" target="_blank">SSML</a> を使うことで、Googleアシスタントの発声をカスタマイズすることができます。このコードラボでは、wait タグを使って、文と文の発声の間に無音時間を作り出しています。</p>
+<p><a href="https://developers.google.com/actions/reference/ssml" target="_blank">SSML</a> を使うことで、Googleアシスタントの発声をカスタマイズすることができます。このコードラボでは、break タグを使って、文と文の発声の間に無音時間を作り出しています。</p>
 <p>そして、スマートディスプレイの画面上の表示を更新するために、以下の情報を持つ ImmersiveResponse オブジェクトを生成し、conv.ask() メソッドに渡しています。</p>
 <ul>
 <li>scene: じゃんけん結果にシーンを移行するための &#34;result&#34; 値。</li>
