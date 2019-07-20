@@ -65,20 +65,20 @@
       <google-codelab-step label="How it works" duration="3">
         <p>Interactive Canvas は、会話型アクションをインタラクティブなウェブアプリに接続して、ユーザーが音声またはタッチでビジュアルなユーザーインターフェイスと対話できるようにする機能です。Interactive Canvas を使用するアクションには、次の4つのコンポーネントがあります。</p>
 <ul>
-<li><strong>会話型アクション</strong>: 会話型インターフェイスを使用してユーザーの要求を満たすアクションです。Interactive Canvasを使用するアクションは、会話型アクションと基本的に同じように機能しますが、BasicCard などのリッチレスポンスの代わりに、没入型のウェブビュー（<a href="https://developers.google.com/actions/interactivecanvas/reference/immersiveresponse" target="_blank">ImmersiveResponse</a>）を使用して応答をレンダリングします。</li>
-<li><strong>ウェブアプリ</strong>: 会話中にアクションがユーザーへの応答として送信する、視覚的情報を持つフロントエンドウェブアプリです。HTML、JavaScript、CSSなどのウェブ標準技術を使って、ウェブアプリを構築します。 assistantCanvas を使用することで、ウェブアプリは会話アクションと通信できます。</li>
-<li><strong>assistantCanvas</strong>: ウェブアプリと会話型アクションの間の通信を可能にするためにウェブアプリ内で使用する JavaScript API です。</li>
-<li><strong>ImmersiveResponse</strong>: ウェブアプリが画面を更新する方法を定義するレスポンスタイプです。</li>
+<li><strong>会話型アクション</strong>: 会話型インターフェイスを使用してユーザーの要求を満たすアクションです。Interactive Canvasを使用するアクションは、会話型アクションと基本的に同じように機能しますが、BasicCard などのリッチレスポンスの代わりに、没入型のウェブビュー（<a href="https://actions-on-google.github.io/actions-on-google-nodejs/2.9.1-preview.1/classes/_service_actionssdk_conversation_response_html_.htmlresponse.html" target="_blank">HtmlResponse</a>）を使用して応答をレンダリングします。</li>
+<li><strong>ウェブアプリ</strong>: 会話中にアクションがユーザーへの応答として送信する、視覚的情報を持つフロントエンドウェブアプリです。HTML、JavaScript、CSSなどのウェブ標準技術を使って、ウェブアプリを構築します。 interactiveCanvas を使用することで、ウェブアプリは会話アクションと通信できます。</li>
+<li><strong>interactiveCanvas</strong>: ウェブアプリと会話型アクションの間の通信を可能にするためにウェブアプリ内で使用する JavaScript API です。</li>
+<li><strong>HtmlResponse</strong>: ウェブアプリが画面を更新する方法を定義するレスポンスタイプです。</li>
 </ul>
 <p>Interactive Canvasの仕組みを説明するために、Cool Colors という架空の Interactive Canvas アクションを使用して、デバイスの画面の色をユーザーが指定した色に変更する手順を紹介しましょう。ユーザーがアクションを呼び出した後、フローは次のようになります。</p>
 <p class="image-container"><img style="width: 602.00px" src="img/436f5346fbb0685f.png"></p>
 <ol type="1" start="1">
 <li>ユーザは、アシスタントデバイス（この場合はスマートディスプレイ）に向かって、「画面を青色にして」と言います。</li>
 <li>Actions on Googleプラットフォームは、インテントにマッチさせるために、ユーザの要求をDialogflowにルーティングします。</li>
-<li>一致したインテントのフルフィルメントが実行され、ImmersiveResponse がスマートディスプレイに送信されます。まだロードされていない場合、デバイスはURLを使用してウェブアプリをロードします。</li>
-<li>ウェブアプリがロードされた後に、assistantCanvas API を使用してコールバックを登録します。次に、ウェブアプリから登録された onUpdate コールバック関数に state 値が渡されます。この例では、フルフィルメントは、&#34;blue&#34; の値を持つ変数を含む state 値を格納した ImmersiveResponse を送信します。</li>
-<li>ウェブアプリのカスタムロジックは、ImmersiveResponse の state 値を読み取り、定義済みの変更を加えます。この例では、画面を青色に変更します。 </li>
-<li>assistantCanvas は、コールバックの更新を、スマートディスプレイに送信します。</li>
+<li>一致したインテントのフルフィルメントが実行され、HtmlResponse がスマートディスプレイに送信されます。まだロードされていない場合、デバイスはURLを使用してウェブアプリをロードします。</li>
+<li>ウェブアプリがロードされた後に、interactiveCanvas API を使用してコールバックを登録します。次に、ウェブアプリから登録された onUpdate コールバック関数に data 値が渡されます。この例では、フルフィルメントは、&#34;blue&#34; の値を持つ変数を含む data 値を格納した HtmlResponse を送信します。</li>
+<li>ウェブアプリのカスタムロジックは、HtmlResponse の data 値を読み取り、定義済みの変更を加えます。この例では、画面を青色に変更します。 </li>
+<li>interactiveCanvas は、コールバックの更新を、スマートディスプレイに送信します。</li>
 </ol>
 
 
@@ -195,7 +195,7 @@ $ cd ..</code></pre>
 <pre><code>const functions = require(&#39;firebase-functions&#39;);
 const {
   dialogflow,
-  ImmersiveResponse
+  HtmlResponse
 } = require(&#39;actions-on-google&#39;);
 
 const firebaseConfig = JSON.parse(process.env.FIREBASE_CONFIG);
@@ -369,9 +369,8 @@ div.container {
     &lt;meta name=&#34;viewport&#34; content=&#34;width=device-width, initial-scale=1&#34; /&gt;
     &lt;title&gt;じゃんけんぽん！&lt;/title&gt;
     &lt;link rel=&#34;shortcut icon&#34; type=&#34;image/x-icon&#34; href=&#34;data:image/x-icon;,&#34; /&gt;
-    &lt;link rel=&#34;stylesheet&#34; href=&#34;https://www.gstatic.com/assistant/immersivecanvas/css/styles.css&#34; /&gt;
     &lt;link rel=&#34;stylesheet&#34; href=&#34;css/index.css&#34; /&gt;
-    &lt;script src=&#34;https://www.gstatic.com/assistant/immersivecanvas/js/immersive_canvas_api.js&#34;&gt;&lt;/script&gt;
+    &lt;script src=&#34;https://www.gstatic.com/assistant/interactivecanvas/api/interactive_canvas.min.js&#34;&gt;&lt;/script&gt;
   &lt;/head&gt;
   &lt;body&gt;
     &lt;div class=&#34;container&#34;&gt;
@@ -401,8 +400,7 @@ div.container {
 &lt;/html&gt;</code></pre>
 <p>Interactive Canvas向けのウェブページは、以下を満たす必要があります。</p>
 <ul>
-<li>以下のスタイルシートを読み込みます。<br>https://www.gstatic.com/assistant/immersivecanvas/css/styles.css</li>
-<li>以下のJavaScriptファイルを読み込みます。<br>https://www.gstatic.com/assistant/immersivecanvas/js/immersive_canvas_api.js</li>
+<li>以下のJavaScriptファイルを読み込みます。<br>https://www.gstatic.com/assistant/interactivecanvas/api/interactive_canvas.min.js</li>
 </ul>
 <p>また、レスポンシブであり、そしてSPA（Single Page Application）として作成されることが推奨されています。</p>
 <p>このコードラボでは、HTMLファイルの中で主に以下の3つの構造を操作します。</p>
@@ -451,22 +449,22 @@ $ cd ../..</code></pre>
 <li><strong>Save</strong> ボタンを押します。</li>
 </ol>
 <h2 is-upgraded><strong>Default Welcome Intentインテントハンドラを実装する</strong></h2>
-<p>Interactive Canvas を使ってスマートディスプレイに画面を表示するためには、Actions on Google Client Library が提供する ImmersiveResponse オブジェクトを利用します。このオブジェクトは、スマートディスプレイが持つ画面に対して、どのウェブページを表示するか、そしてユーザとのインタラクションによって会話の状況がどう変化したか、それらの情報を伝達するために使います。</p>
+<p>Interactive Canvas を使ってスマートディスプレイに画面を表示するためには、Actions on Google Client Library が提供する HtmlResponse オブジェクトを利用します。このオブジェクトは、スマートディスプレイが持つ画面に対して、どのウェブページを表示するか、そしてユーザとのインタラクションによって会話の状況がどう変化したか、それらの情報を伝達するために使います。</p>
 <p>functions/index.js ファイルの中に、以下のような行を見つけます。</p>
 <pre><code>// TODO: Write your code here.</code></pre>
 <p>その行の下に、以下のコードを追記します。</p>
 <pre><code>app.intent(&#39;Default Welcome Intent&#39;, conv =&gt; {
   conv.ask(&#39;どの手を出しますか？グー？チョキ？それともパー？&#39;);
-  conv.ask(new ImmersiveResponse({
+  conv.ask(new HtmlResponse({
     url: `https://${firebaseConfig.projectId}.firebaseapp.com/`
   }));
 });</code></pre>
 <p>最初の conv.ask() メソッド呼び出しでは、Googleアシスタントがユーザに対して問いかけるフレーズを指定しています。</p>
-<p>そして、Interactive Canvas を使ってウェブページを画面に描画するために、そのウェブページのURLを持つ ImmersiveResponse オブジェクトを生成して、conv.ask() メソッドを呼び出しています。Googleアシスタントは、url プロパティに設定されたURLのウェブページをスマートディスプレイに描画します。</p>
+<p>そして、Interactive Canvas を使ってウェブページを画面に描画するために、そのウェブページのURLを持つ HtmlResponse オブジェクトを生成して、conv.ask() メソッドを呼び出しています。Googleアシスタントは、url プロパティに設定されたURLのウェブページをスマートディスプレイに描画します。</p>
 <p>ここで指定しているURLは、Firebase Hostingにて配信されるウェブページのURLです。Actions プロジェクトのIDを process.env.FIREBASE_CONFIG から動的に取得して、URLを組み立てています。</p>
 <h2 is-upgraded><strong>JavaScriptから発話を送信する</strong></h2>
 <p>Interactive Canvasによってスマートディスプレイの画面に視覚的な情報を表示することができます。もしタッチ操作に対応した画面であれば、そのイベントをJavaScriptにてハンドリングすることが可能です。そして、ユーザが声で指示をしたときと同じように、ある文字列をユーザが発話したとしてGoogleアシスタントに送信することができます。</p>
-<p>Interactive Canvas では、 <a href="https://developers.google.com/actions/interactivecanvas/reference/assistantcanvas" target="_blank">assistantCanvas</a> というオブジェクトが提供されます。この assistantCanvas オブジェクトの sendTextQuery() メソッドに文字列を渡すことで、Googleアシスタントにユーザフレーズが送信されます。</p>
+<p>Interactive Canvas では、 <a href="https://developers.google.com/actions/interactivecanvas/reference/interactivecanvas" target="_blank">interactiveCanvas</a> というオブジェクトが提供されます。この interactiveCanvas オブジェクトの sendTextQuery() メソッドに文字列を渡すことで、Googleアシスタントにユーザフレーズが送信されます。</p>
 <p>ここでは、グー、チョキ、そしてパーの3つの画像それぞれにイベントハンドラを登録します。そして、もしいずれかがタップされた際に、タップされた手を示すフレーズをGoogleアシスタントに送信する処理を追加します。</p>
 <p>public/index.html ファイルの中に、以下のような &#34;welcome&#34; というID値を持つ div 要素があります。</p>
 <pre><code>      &lt;div id=&#34;welcome&#34;&gt;
@@ -485,10 +483,10 @@ $ cd ../..</code></pre>
 <p>この下に、以下のコードを追加します。</p>
 <pre><code>document.querySelectorAll(&#39;#welcome img&#39;).forEach(img =&gt; {
   img.addEventListener(&#39;click&#39;, elem =&gt; {
-    assistantCanvas.sendTextQuery(elem.target.dataset.choice);
+    interactiveCanvas.sendTextQuery(elem.target.dataset.choice);
   });
 });</code></pre>
-<p>イベントハンドラ内では、click イベントハンドラを img 要素に追加しています。そして、タップされた対象の img 要素の dataset.choice から対応するじゃんけんの手の名称を取得しています。最後に、assistantCanvas オブジェクトの sendTextQuery() メソッドにその名称を渡すことで、ユーザがじゃんけんの手を発話したときと同じ動作をJavaScriptコードによって実行します。</p>
+<p>イベントハンドラ内では、click イベントハンドラを img 要素に追加しています。そして、タップされた対象の img 要素の dataset.choice から対応するじゃんけんの手の名称を取得しています。最後に、interactiveCanvas オブジェクトの sendTextQuery() メソッドにその名称を渡すことで、ユーザがじゃんけんの手を発話したときと同じ動作をJavaScriptコードによって実行します。</p>
 <h2 is-upgraded><strong>動作確認する</strong></h2>
 <p>では、ここまでのコードをFirebaseにデプロイして、動作確認を行います。ターミナルから以下のコマンドを実行してください。</p>
 <pre><code>$ firebase deploy</code></pre>
@@ -627,9 +625,9 @@ const judgeMap = {
       &lt;p&gt;もう一度遊びますか？&lt;/p&gt;
     &lt;/speak&gt;`;
   conv.ask(ssml);
-  // 画面を更新するための情報を持つImmersiveResponseオブジェクト。
-  conv.ask(new ImmersiveResponse({
-    state: {
+  // 画面を更新するための情報を持つHtmlResponseオブジェクト。
+  conv.ask(new HtmlResponse({
+    data: {
       scene: &#39;result&#39;,
       userChoice,
       actionChoice,
@@ -644,28 +642,28 @@ const judgeMap = {
 <li>画面の更新。</li>
 </ul>
 <p><a href="https://developers.google.com/actions/reference/ssml" target="_blank">SSML</a> を使うことで、Googleアシスタントの発声をカスタマイズすることができます。このコードラボでは、break タグを使って、文と文の発声の間に無音時間を作り出しています。</p>
-<p>そして、スマートディスプレイの画面上の表示を更新するために、以下の情報を持つ ImmersiveResponse オブジェクトを生成し、conv.ask() メソッドに渡しています。</p>
+<p>そして、スマートディスプレイの画面上の表示を更新するために、以下の情報を持つ HtmlResponse オブジェクトを生成し、conv.ask() メソッドに渡しています。</p>
 <ul>
 <li>scene: じゃんけん結果にシーンを移行するための &#34;result&#34; 値。</li>
 <li>userChoice: ユーザが出した手を示す文字列。</li>
 <li>actionChoice: アクションが出した手を示す文字列。</li>
 <li>message: 勝敗を示すメッセージ文字列。</li>
 </ul>
-<p>SSML文字列およびImmersiveResponseオブジェクトを conv.ask() メソッドに渡すことで、Googleアシスタントに発話と画面更新を指示することができます。</p>
+<p>SSML文字列およびHtmlResponseオブジェクトを conv.ask() メソッドに渡すことで、Googleアシスタントに発話と画面更新を指示することができます。</p>
 <h2 is-upgraded><strong>画面更新要求をハンドリングする</strong></h2>
-<p>フルフィルメントから送信されたImmersiveResponseオブジェクトをGoogleアシスタントが受け取った後に、スマートディスプレイ上では画面を更新するためにJavaScriptコードが実行されます。具体的には、画面を更新する必要が生じたとき（つまり ImmersiveResponse オブジェクトがフルフィルメントから返されたとき）に呼び出されるコールバック関数を登録します。</p>
+<p>フルフィルメントから送信されたHtmlResponseオブジェクトをGoogleアシスタントが受け取った後に、スマートディスプレイ上では画面を更新するためにJavaScriptコードが実行されます。具体的には、画面を更新する必要が生じたとき（つまり HtmlResponse オブジェクトがフルフィルメントから返されたとき）に呼び出されるコールバック関数を登録します。</p>
 <p>public/js/index.js ファイルの中に、以下のような記載を見つけます。</p>
 <pre><code>// TODO: Write your code here.</code></pre>
 <p>この下に、以下のコードを追加します。</p>
-<pre><code>assistantCanvas.ready({
-  onUpdate(state) {
+<pre><code>interactiveCanvas.ready({
+  onUpdate(data) {
     // Display the versus image.
-    if (state.scene === &#39;result&#39;) {
+    if (data.scene === &#39;result&#39;) {
       document.querySelector(&#39;#welcome&#39;).style.display = &#39;none&#39;;
       document.querySelector(&#39;#vs&#39;).style.display = &#39;block&#39;;
-      document.querySelector(&#39;#user-choice&#39;).src = `images/${state.userChoice}.png`;
-      document.querySelector(&#39;#action-choice&#39;).src = `images/${state.actionChoice}.png`;
-      document.querySelector(&#39;#message&#39;).innerText = state.message;
+      document.querySelector(&#39;#user-choice&#39;).src = `images/${data.userChoice}.png`;
+      document.querySelector(&#39;#action-choice&#39;).src = `images/${data.actionChoice}.png`;
+      document.querySelector(&#39;#message&#39;).innerText = data.message;
       // Display the result.
 
     }
@@ -673,14 +671,14 @@ const judgeMap = {
 
   }
 });</code></pre>
-<p>assistantCanvas オブジェクトの <a href="https://developers.google.com/actions/interactivecanvas/reference/assistantcanvas#ready" target="_blank">ready()</a> メソッドに対して、コールバック関数を持つオブジェクトをセットします。コールバック関数は以下の2つが定義可能です。</p>
+<p>interactiveCanvas オブジェクトの <a href="https://developers.google.com/actions/interactivecanvas/reference/assistantcanvas#ready" target="_blank">ready()</a> メソッドに対して、コールバック関数を持つオブジェクトをセットします。コールバック関数は以下の2つが定義可能です。</p>
 <ul>
-<li><a href="https://developers.google.com/actions/interactivecanvas/reference/assistantcanvas#onupdate" target="_blank"><strong>onUpdate()</strong></a> - state 値を持つ ImmersiveResponse オブジェクトがフルフィルメントから返されたときに呼び出される。</li>
+<li><a href="https://developers.google.com/actions/interactivecanvas/reference/assistantcanvas#onupdate" target="_blank"><strong>onUpdate()</strong></a> - data 値を持つ HtmlResponse オブジェクトがフルフィルメントから返されたときに呼び出される。</li>
 <li><a href="https://developers.google.com/actions/interactivecanvas/reference/assistantcanvas#onttsmark" target="_blank"><strong>onTtsMark()</strong></a> - Googleアシスタントの発話の開始、終了およびSSMLに含まれる mark タグが評価されたときに呼び出される。</li>
 </ul>
 <aside class="warning"><p>Googleアシスタントの発話の開始時に &#34;START&#34;、終了時に &#34;END&#34; が onTtsMark() コールバック関数の引数に渡されます。SSMLの文字列に &lt;mark&gt; タグが含まれていた際に、現時点では不具合のために onTtsMark() コールバック関数が呼び出されない場合があります。 </p>
 </aside>
-<p>onUpdate() コールバック関数には、フルフィルメントにて ImmersiveResponse オブジェクトに渡した state オブジェクトがそのまま渡されます。ここでは、state オブジェクトに含まれる scene 値に基づいて、画面の更新処理を分岐しています。また、ユーザやアクションが出した手に応じて画像を切り替え、また勝敗を示すメッセージを表示しています。</p>
+<p>onUpdate() コールバック関数には、フルフィルメントにて HtmlResponse オブジェクトに渡した data オブジェクトがそのまま渡されます。ここでは、data オブジェクトに含まれる scene 値に基づいて、画面の更新処理を分岐しています。また、ユーザやアクションが出した手に応じて画像を切り替え、また勝敗を示すメッセージを表示しています。</p>
 <h2 is-upgraded><strong>発話に合わせて画面を更新する</strong></h2>
 <p>ここで、Googleアシスタントがじゃんけんの結果をユーザに伝える際に、発話と画面の更新タイミングにちょっとした仕掛けを入れます。具体的には、以下の動作を実現します。</p>
 <ol type="1" start="1">
@@ -774,17 +772,17 @@ const judgeMap = {
 <p>その行の下に、以下のコードを追記します。</p>
 <pre><code>app.intent(&#39;Show - yes&#39;, conv =&gt; {
   conv.ask(&#39;わかりました。どの手を出しますか？グー？チョキ？それともパー？&#39;);
-  conv.ask(new ImmersiveResponse({
-    state: {
+  conv.ask(new HtmlResponse({
+    data: {
       scene: &#39;restart&#39;
     }
   }));
 });</code></pre>
 <p>scene プロパティに &#34;restart&#34; を指定することで、画面の更新動作として初期状態に戻すことを指示します。</p>
-<p>この ImmersiveResponse オブジェクトの内容に基づいて、画面を初期状態に戻す処理を public/js/index.js ファイルに追記します。public/js/index.js ファイルの中に、以下のような記載を見つけます。</p>
+<p>この HtmlResponse オブジェクトの内容に基づいて、画面を初期状態に戻す処理を public/js/index.js ファイルに追記します。public/js/index.js ファイルの中に、以下のような記載を見つけます。</p>
 <pre><code>// Initialize the screen.</code></pre>
 <p>この下に、以下のコードを追加します。</p>
-<pre><code>if (state.scene === &#39;restart&#39;) {
+<pre><code>if (data.scene === &#39;restart&#39;) {
   document.querySelector(&#39;#welcome&#39;).style.display = &#39;block&#39;;
   document.querySelector(&#39;#vs&#39;).style.display = &#39;none&#39;;
   document.querySelector(&#39;#result&#39;).style.display = &#39;none&#39;;
