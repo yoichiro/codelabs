@@ -65,20 +65,20 @@
       <google-codelab-step label="How it works" duration="3">
         <p>Interactive Canvas connects your conversational Action to an interactive web app so that your users can interact with your visual user interface through voice or touch. There are four components to an Action that uses Interactive Canvas:</p>
 <ul>
-<li><strong>Custom Conversational Action</strong>: An Action that uses a conversational interface to fulfill user requests. Actions that use Interactive Canvas operate in the same fundamental way as any conversational Action, but use immersive web views (<a href="https://developers.google.com/actions/interactivecanvas/reference/immersiveresponse" target="_blank">ImmersiveResponse</a>) to render responses instead of rich cards or simple text and voice responses.</li>
-<li><strong>Web app</strong>: A front-end web app with customized visuals that your Action sends as a response to users during a conversation. You build the web app with web standards like HTML, JavaScript, and CSS. assistantCanvas lets your web app communicate with your Conversational Action.</li>
-<li><strong>assistantCanvas</strong>: JavaScript API that you include in the web app to enable communication between the web app and your conversational Action.</li>
-<li><strong>ImmersiveResponse</strong>: A response type that defines how the web app should render.</li>
+<li><strong>Custom Conversational Action</strong>: An Action that uses a conversational interface to fulfill user requests. Actions that use Interactive Canvas operate in the same fundamental way as any conversational Action, but use immersive web views (<a href="https://actions-on-google.github.io/actions-on-google-nodejs/2.9.1-preview.1/classes/_service_actionssdk_conversation_response_html_.htmlresponse.html" target="_blank">HtmlResponse</a>) to render responses instead of rich cards or simple text and voice responses.</li>
+<li><strong>Web app</strong>: A front-end web app with customized visuals that your Action sends as a response to users during a conversation. You build the web app with web standards like HTML, JavaScript, and CSS. interactiveCanvas lets your web app communicate with your Conversational Action.</li>
+<li><strong>interactiveCanvas</strong>: JavaScript API that you include in the web app to enable communication between the web app and your conversational Action.</li>
+<li><strong>HtmlResponse</strong>: A response type that defines how the web app should render.</li>
 </ul>
 <p>To illustrate how Interactive Canvas works, imagine a hypothetical Interactive Canvas Action called <em>Cool Colors</em> that changes the device screen color to whatever color the user says. After the user invokes the Action, the flow looks like the following:</p>
 <p class="image-container"><img style="width: 602.00px" src="img/436f5346fbb0685f.png"></p>
 <ol type="1" start="1">
 <li>The user says Turn the screen blue to the Assistant device (a Smart Display in this case).</li>
 <li>The Actions on Google platform routes the user&#39;s request to Dialogflow to match an intent.</li>
-<li>The fulfillment for the matched intent is run and an ImmersiveResponse is sent to the Smart Display. The device uses the URL to load the web app if it has not yet been loaded.</li>
-<li>When the web app loads, it registers callbacks with the assistantCanvas API. The state value is then passed into the registered onUpdate callback of the web app. In our example, the fulfillment sends an ImmersiveResponse with a state that includes a variable with the value of blue.</li>
-<li>The custom logic for your web app reads the state value of the ImmersiveResponse and makes the defined changes. In our example, this turns the screen blue.</li>
-<li>assistantCanvas sends the callback update to the Smart Display.</li>
+<li>The fulfillment for the matched intent is run and an HtmlResponse is sent to the Smart Display. The device uses the URL to load the web app if it has not yet been loaded.</li>
+<li>When the web app loads, it registers callbacks with the interactiveCanvas API. The data value is then passed into the registered onUpdate callback of the web app. In our example, the fulfillment sends an HtmlResponse with a data that includes a variable with the value of blue.</li>
+<li>The custom logic for your web app reads the data value of the HtmlResponse and makes the defined changes. In our example, this turns the screen blue.</li>
+<li>interactiveCanvas sends the callback update to the Smart Display.</li>
 </ol>
 
 
@@ -195,7 +195,7 @@ $ cd ..</code></pre>
 <pre><code>const functions = require(&#39;firebase-functions&#39;);
 const {
   dialogflow,
-  ImmersiveResponse
+  HtmlResponse
 } = require(&#39;actions-on-google&#39;);
 
 const firebaseConfig = JSON.parse(process.env.FIREBASE_CONFIG);
@@ -369,9 +369,8 @@ div.container {
     &lt;meta name=&#34;viewport&#34; content=&#34;width=device-width, initial-scale=1&#34; /&gt;
     &lt;title&gt;Rock, Paper, Scissors!&lt;/title&gt;
     &lt;link rel=&#34;shortcut icon&#34; type=&#34;image/x-icon&#34; href=&#34;data:image/x-icon;,&#34; /&gt;
-    &lt;link rel=&#34;stylesheet&#34; href=&#34;https://www.gstatic.com/assistant/immersivecanvas/css/styles.css&#34; /&gt;
     &lt;link rel=&#34;stylesheet&#34; href=&#34;css/index.css&#34; /&gt;
-    &lt;script src=&#34;https://www.gstatic.com/assistant/immersivecanvas/js/immersive_canvas_api.js&#34;&gt;&lt;/script&gt;
+    &lt;script src=&#34;https://www.gstatic.com/assistant/interactivecanvas/api/interactive_canvas.min.js&#34;&gt;&lt;/script&gt;
   &lt;/head&gt;
   &lt;body&gt;
     &lt;div class=&#34;container&#34;&gt;
@@ -401,8 +400,7 @@ div.container {
 &lt;/html&gt;</code></pre>
 <p>A Web page for Interactive Canvas needs to fulfill the following.</p>
 <ul>
-<li>Load the stylesheet below.<br>https://www.gstatic.com/assistant/immersivecanvas/css/styles.css</li>
-<li>Load the JavaScript file below.<br>https://www.gstatic.com/assistant/immersivecanvas/js/immersive_canvas_api.js</li>
+<li>Load the JavaScript file below.<br>https://www.gstatic.com/assistant/interactivecanvas/api/interactive_canvas.min.js</li>
 </ul>
 <p>Also, we recommend that the Web page is created as a responsive and SPA (Single Page Application).</p>
 <p>In this codelab, mainly three structures are operated in the HTML file.</p>
@@ -451,22 +449,22 @@ $ cd ../..</code></pre>
 <li>Push <strong>Save</strong> button.</li>
 </ol>
 <h2 is-upgraded><strong>Implement the Default Welcome Intent handler</strong></h2>
-<p>We use an ImmersiveResponse object provided by Actions on Google Client Library so that we display a screen on Smart Display with Interactive Canvas. This object is used to send information (which web page is displayed, how the conversation state is changed according to interaction with the user) to the screen on Smart Display.</p>
+<p>We use an HtmlResponse object provided by Actions on Google Client Library so that we display a screen on Smart Display with Interactive Canvas. This object is used to send information (which web page is displayed, how the conversation data is changed according to interaction with the user) to the screen on Smart Display.</p>
 <p>Find the line like below in the functions/index.js file.</p>
 <pre><code>// TODO: Write your code here.</code></pre>
 <p>Add the following code under the line above.</p>
 <pre><code>app.intent(&#39;Default Welcome Intent&#39;, conv =&gt; {
   conv.ask(&#39;Which do you want to show? Rock? Paper? Or, Scissors?&#39;);
-  conv.ask(new ImmersiveResponse({
+  conv.ask(new HtmlResponse({
     url: `https://${firebaseConfig.projectId}.firebaseapp.com/`
   }));
 });</code></pre>
 <p>In the first conv.ask() calling, the code specifies the phrase to ask the user by Google Assistant.</p>
-<p>And, to draw the Web page on the screen with Interactive Canvas, the code calls the conv.ask() method with generated ImmersiveResponse object which has the URL of the Web page. Google Assistant draws the Web page on Smart Display based on the URL specified by the url property.</p>
+<p>And, to draw the Web page on the screen with Interactive Canvas, the code calls the conv.ask() method with generated HtmlResponse object which has the URL of the Web page. Google Assistant draws the Web page on Smart Display based on the URL specified by the url property.</p>
 <p>This URL set here is the URL of the Web page delivered from Firebase Hosting. We construct the URL including the Actions Project ID retrieved from process.env.FIREBASE_CONFIG dynamically.</p>
 <h2 is-upgraded><strong>Send a phrase from JavaScript</strong></h2>
 <p>Your action can display visual information on the Smart Display with Interactive Canvas. If the screen supports a Touch manipulation, your action can handle the event by JavaScript. And, like the same as users say a phrase by voice, your action can send the phrase to Google Assistant as the user says.</p>
-<p>The <a href="https://developers.google.com/actions/interactivecanvas/reference/assistantcanvas" target="_blank">assistantCanvas</a> object is provided for Interactive Canvas. When your action passes a string to the sendTextQuery() method of the assistantCanvas object, the phrase is sent to the Google Assistant.</p>
+<p>The <a href="https://developers.google.com/actions/interactivecanvas/reference/interactivecanvas" target="_blank">interactiveCanvas</a> object is provided for Interactive Canvas. When your action passes a string to the sendTextQuery() method of the interactiveCanvas object, the phrase is sent to the Google Assistant.</p>
 <p>Here, we add event handlers to each element of three images (rock, paper and scissors). And, add a process to send a phrase represents the hand which the user tapped to Google Assistant, for when one of the elements is tapped.</p>
 <p>There is the div element which has the &#34;welcome&#34; value as ID in the public/index.html file.</p>
 <pre><code>      &lt;div id=&#34;welcome&#34;&gt;
@@ -485,10 +483,10 @@ $ cd ../..</code></pre>
 <p>We add the code below under the line above.</p>
 <pre><code>document.querySelectorAll(&#39;#welcome img&#39;).forEach(img =&gt; {
   img.addEventListener(&#39;click&#39;, elem =&gt; {
-    assistantCanvas.sendTextQuery(elem.target.dataset.choice);
+    interactiveCanvas.sendTextQuery(elem.target.dataset.choice);
   });
 });</code></pre>
-<p>In the event handler, add a click event handler to an img element. And, the handler retrieves the hand name of rock-paper-scissors related to the dataset.choice of the target img element tapped. Last, the code passes the name to the sendTextQuery() method of the assistantCanvas object from the JavaScript code, like as the phrase is sent to the Google Assistant.</p>
+<p>In the event handler, add a click event handler to an img element. And, the handler retrieves the hand name of rock-paper-scissors related to the dataset.choice of the target img element tapped. Last, the code passes the name to the sendTextQuery() method of the interactiveCanvas object from the JavaScript code, like as the phrase is sent to the Google Assistant.</p>
 <h2 is-upgraded><strong>Test Your Action</strong></h2>
 <p>Now, let&#39;s deploy your current code to Firebase and test it. Execute the following command in your terminal.</p>
 <pre><code>$ firebase deploy</code></pre>
@@ -529,7 +527,7 @@ $ cd ../..</code></pre>
 <ol type="1" start="1">
 <li>Dialogflow recognizes what one of the rock, paper or scissors was said, and it notifies this to your fulfillment.</li>
 <li>Your fulfillment determines a hand of the action in random order. And, it compares the hand with the received user&#39;s hand, then decides whether the user won or not.</li>
-<li>Your fulfillment returns the SimpleResponse with the phrase to notify the decision to the user to Google Assistant. At the same time, your fulfillment creates the ImmersiveResponse object with user&#39;s hand, action&#39;s hand and the message represents the decision, and it also is returned to the Google Assistant.</li>
+<li>Your fulfillment returns the SimpleResponse with the phrase to notify the decision to the user to Google Assistant. At the same time, your fulfillment creates the HtmlResponse object with user&#39;s hand, action&#39;s hand and the message represents the decision, and it also is returned to the Google Assistant.</li>
 <li>The JavaScript code running on the screen catches the information returned from the fulfillment. Then, the code changes the image represents a duel.</li>
 <li>After a certain time, the code changes images: user&#39;s hand, action&#39;s hand and the message represents the decision.</li>
 </ol>
@@ -621,9 +619,9 @@ $ cd ../..</code></pre>
       &lt;p&gt;Do you want to play again?&lt;/p&gt;
     &lt;/speak&gt;`;
   conv.ask(ssml);
-  // ImmersiveResponse object with information to update the screen.
-  conv.ask(new ImmersiveResponse({
-    state: {
+  // HtmlResponse object with information to update the screen.
+  conv.ask(new HtmlResponse({
+    data: {
       scene: &#39;result&#39;,
       userChoice,
       actionChoice,
@@ -638,28 +636,28 @@ $ cd ../..</code></pre>
 <li>The screen change.</li>
 </ul>
 <p>We customize the voice Google Assistant says with <a href="https://developers.google.com/actions/reference/ssml" target="_blank">SSML</a>. In this code lab, we use the break tag to create silence between sentences.</p>
-<p>And, to update the content of the screen on the Smart Display, your code creates the ImmersiveResponse object with the following information and passes it to conv.ask() method.</p>
+<p>And, to update the content of the screen on the Smart Display, your code creates the HtmlResponse object with the following information and passes it to conv.ask() method.</p>
 <ul>
 <li>scene: The &#34;result&#34; value to move to the &#34;Duel result&#34; scene.</li>
 <li>userChoice: The string represents the user&#39;s hand.</li>
 <li>actionChoice: The string represents the action&#39;s hand.</li>
 <li>message: The message represents the duel result.</li>
 </ul>
-<p>Your code can specify saying a phrase and updating a screen to Google Assistant by passing SSML string and ImmersiveResponse object to conv.ask() method.</p>
+<p>Your code can specify saying a phrase and updating a screen to Google Assistant by passing SSML string and HtmlResponse object to conv.ask() method.</p>
 <h2 is-upgraded><strong>Handle screen update request</strong></h2>
-<p>After Google Assistant receives the ImmersiveResponse object sent from your fulfillment, your JavaScript code is executed to update the screen on Smart Display. For instance, you need to register your callback function called at the timing when it is necessary to update the screen (that is, the timing is the ImmersiveResponse object is returned from your fulfillment).</p>
+<p>After Google Assistant receives the HtmlResponse object sent from your fulfillment, your JavaScript code is executed to update the screen on Smart Display. For instance, you need to register your callback function called at the timing when it is necessary to update the screen (that is, the timing is the HtmlResponse object is returned from your fulfillment).</p>
 <p>You can find the line like below in public/js/index.js file.</p>
 <pre><code>// TODO: Write your code here.</code></pre>
 <p>Add the following code under the line above.</p>
-<pre><code>assistantCanvas.ready({
-  onUpdate(state) {
+<pre><code>interactiveCanvas.ready({
+  onUpdate(data) {
     // Display the duel image.
-    if (state.scene === &#39;result&#39;) {
+    if (data.scene === &#39;result&#39;) {
       document.querySelector(&#39;#welcome&#39;).style.display = &#39;none&#39;;
       document.querySelector(&#39;#vs&#39;).style.display = &#39;block&#39;;
-      document.querySelector(&#39;#user-choice&#39;).src = `images/${state.userChoice}.png`;
-      document.querySelector(&#39;#action-choice&#39;).src = `images/${state.actionChoice}.png`;
-      document.querySelector(&#39;#message&#39;).innerText = state.message;
+      document.querySelector(&#39;#user-choice&#39;).src = `images/${data.userChoice}.png`;
+      document.querySelector(&#39;#action-choice&#39;).src = `images/${data.actionChoice}.png`;
+      document.querySelector(&#39;#message&#39;).innerText = data.message;
       // Display the result.
 
     }
@@ -667,14 +665,14 @@ $ cd ../..</code></pre>
 
   }
 });</code></pre>
-<p>You can set an object which has callback functions to <a href="https://developers.google.com/actions/interactivecanvas/reference/assistantcanvas#ready" target="_blank">ready()</a> method of the assistantCanvas object. There are following two callback functions.</p>
+<p>You can set an object which has callback functions to <a href="https://developers.google.com/actions/interactivecanvas/reference/assistantcanvas#ready" target="_blank">ready()</a> method of the interactiveCanvas object. There are following two callback functions.</p>
 <ul>
-<li><a href="https://developers.google.com/actions/interactivecanvas/reference/assistantcanvas#onupdate" target="_blank"><strong>onUpdate()</strong></a> - This is called when your fulfillment returns an ImmersiveResponse object with the state value.</li>
+<li><a href="https://developers.google.com/actions/interactivecanvas/reference/assistantcanvas#onupdate" target="_blank"><strong>onUpdate()</strong></a> - This is called when your fulfillment returns an HtmlResponse object with the data value.</li>
 <li><a href="https://developers.google.com/actions/interactivecanvas/reference/assistantcanvas#onttsmark" target="_blank"><strong>onTtsMark()</strong></a> - This is called when starting saying by Google Assistant, the saying finished and a mark tag in SSML is evaluated.</li>
 </ul>
 <aside class="warning"><p>Currently, the onTtsMark() callback function can receive two argument values. One is &#34;START&#34; when Google Assistant starts to say a phrase. Second one is &#34;END&#34; when Google Assistant finishes saying the phrase. In the specification, the onTtsMark() callback function can be called at each mark tag in SSML string. However, the onTtsMark() callback function may not be called sometimes due to a bug currently.</p>
 </aside>
-<p>The state object which your fulfillment passed to the ImmersiveResponse object is passed to the onUpdate() callback function without any change. Here, your code determines the screen it should render based on the scene value in the state object. At the same time, your code changes images according to user&#39;s and action&#39;s hands and displays the message represents the result of duel.</p>
+<p>The data object which your fulfillment passed to the HtmlResponse object is passed to the onUpdate() callback function without any change. Here, your code determines the screen it should render based on the scene value in the data object. At the same time, your code changes images according to user&#39;s and action&#39;s hands and displays the message represents the result of duel.</p>
 <h2 is-upgraded><strong>Update the screen against timings during saying phrase</strong></h2>
 <p>Here, let&#39;s try to add a jigalorum at update timing during saying the phrase and updating the screen when Google Assistant says the result of rock-paper-scissors duel to the user. For instance, we implement the following behavior.</p>
 <ol type="1" start="1">
@@ -768,23 +766,23 @@ $ cd ../..</code></pre>
 <p>Add the following code under the line above.</p>
 <pre><code>app.intent(&#39;Show - yes&#39;, conv =&gt; {
   conv.ask(&#39;Ok. Which do you want to show? Rock? Paper? Or, Scissors?&#39;);
-  conv.ask(new ImmersiveResponse({
-    state: {
+  conv.ask(new HtmlResponse({
+    data: {
       scene: &#39;restart&#39;
     }
   }));
 });</code></pre>
-<p>By specifying the &#34;restart&#34; value to the scene property, your code specifies to go back to the initial state as the update behavior for the screen.</p>
-<p>Add the code in the public/js/index.js file to change the screen to initial state based on the content of this ImmersiveResponse object. You can find the following line in the public/js/index.js file.</p>
+<p>By specifying the &#34;restart&#34; value to the scene property, your code specifies to go back to the initial data as the update behavior for the screen.</p>
+<p>Add the code in the public/js/index.js file to change the screen to initial data based on the content of this HtmlResponse object. You can find the following line in the public/js/index.js file.</p>
 <pre><code>// Initialize the screen.</code></pre>
 <p>Add the following code under the line above.</p>
-<pre><code>if (state.scene === &#39;restart&#39;) {
+<pre><code>if (data.scene === &#39;restart&#39;) {
   document.querySelector(&#39;#welcome&#39;).style.display = &#39;block&#39;;
   document.querySelector(&#39;#vs&#39;).style.display = &#39;none&#39;;
   document.querySelector(&#39;#result&#39;).style.display = &#39;none&#39;;
   document.querySelector(&#39;#message&#39;).style.display = &#39;none&#39;;
 }</code></pre>
-<p>This code changes the visibility to display only the &#34;div&#34; element which has the &#34;welcome&#34; value as ID value so that the screen goes back to initial state.</p>
+<p>This code changes the visibility to display only the &#34;div&#34; element which has the &#34;welcome&#34; value as ID value so that the screen goes back to initial data.</p>
 <h2 is-upgraded><strong>Add End intent</strong></h2>
 <p>Last, we add a new intent to end the action. Add the end intent by the following steps.</p>
 <ol type="1" start="1">
