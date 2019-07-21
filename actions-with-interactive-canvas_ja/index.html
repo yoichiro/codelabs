@@ -360,6 +360,11 @@ div.container {
   display: none;
   font-size: 48px;
 }</code></pre>
+<aside class="special"><p><strong>Tip:</strong> Interactive Canvas では、アクション名の表示のために、表示領域内にヘッダ区画が確保されます。つまり、Interactive Canvas を利用するアクションが使用可能な領域の高さは、クライアント領域の高さからヘッダ区画の高さを除いた高さとなります。</p>
+<p>ヘッダ区画の高さは、デバイスによって異なります。その高さは、interactiveCanvas オブジェクトの getHeaderHeightPx メソッドによって取得することが可能です。</p>
+<p><code>const headerHeight = await interactiveCanvas.getHeaderHeightPx();</code></p>
+<p>例えば、取得した高さを body 要素の padding-top スタイルにセットするなどすると良いでしょう。</p>
+</aside>
 <h3 is-upgraded>HTMLファイルの作成</h3>
 <p>firebase コマンドを使ってコードセットを生成した際に、すでに public/index.html ファイルが作成されています。この index.html ファイルを以下の内容で置き換えます。</p>
 <pre><code>&lt;!DOCTYPE html&gt;
