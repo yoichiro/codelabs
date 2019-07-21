@@ -360,6 +360,11 @@ div.container {
   display: none;
   font-size: 48px;
 }</code></pre>
+<aside class="special"><p><strong>Tip:</strong> In Interactive Canvas, there is a header area in the client area to display an action name. That is, an available height which an action can use with Interactive Canvas is the remaining height subtracted a height of the header area from a height of client area.</p>
+<p>A height of the header area is different from each device. Your code can retrieve the height by the getHeaderHeightPx method of the interactiveCanvas object.</p>
+<p><code>const headerHeight = await interactiveCanvas.getHeaderHeightPx();</code></p>
+<p>For example, it would be good if your code sets the retrieved height to the padding-top style of the body element.</p>
+</aside>
 <h3 is-upgraded>Create HTML file</h3>
 <p>After generating the code set with firebase command, the &#34;public/index.html&#34; file has already been created. Replace the content of the index.html file with the following content.</p>
 <pre><code>&lt;!DOCTYPE html&gt;
