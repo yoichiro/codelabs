@@ -30,7 +30,7 @@
       <google-codelab-step label="Overview" duration="2">
         <p>Actions on Googleは、スマートスピーカー、携帯電話、車、テレビ、ヘッドフォンなど、5億以上のデバイスにわたって、Googleの仮想パーソナルアシスタントである<a href="https://assistant.google.com/" target="_blank">Googleアシスタント</a>の機能を拡張するためのソフトウェアを作成できる、開発者向けプラットフォームです。ユーザーは、食料品の購入や乗車予約など、何かを達成するためにGoogleアシスタントを会話に加えることができます（現在の機能の完全なリストについては、<a href="https://assistant.google.com/explore/" target="_blank">アクションディレクトリ</a>をご覧ください）。開発者は、Actions on Googleを使用して、ユーザーとサードパーティのフルフィルメントサービスとの間の楽しく効果的な会話体験を簡単に作成し活用することができます。</p>
 <p>このコードラボは、スマートディスプレイ向けのアクションを構築するための手順をカバーします。ここで構築するアクションは、スマートディスプレイが持つ画面を活用しつつ音声で操作を行うアクションです。</p>
-<p>このコードラボは、Actions on Googleを使った開発に対する中級以上のレベルのコンセプトをカバーします。私たちは、このコードラボを開始する前に、<a href="https://codelabs.developers.google.com/codelabs/actions-1-ja/index.html#0" target="_blank">Level 1</a>,  <a href="https://codelabs.developers.google.com/codelabs/actions-2-ja/index.html#0" target="_blank">Level 2</a> および <a href="https://codelabs.developers.google.com/codelabs/actions-3-ja/index.html#0" target="_blank">Level 3</a> のコードラボにてカバーされるトピックについて、あなた自身で習熟しておくことをお勧めします。</p>
+<p>このコードラボは、Actions on Googleを使った開発に対する中級以上のレベルのコンセプトをカバーします。私たちは、このコードラボを開始する前に、<a href="https://yoichiro.github.io/codelabs/actions-1-ja/?index=codelabs%2F" target="_blank">Level 1</a>,  <a href="https://yoichiro.github.io/codelabs/actions-2-ja/?index=codelabs%2F" target="_blank">Level 2</a> および <a href="https://yoichiro.github.io/codelabs/actions-3-ja/?index=codelabs%2F" target="_blank">Level 3</a> のコードラボにてカバーされるトピックについて、あなた自身で習熟しておくことをお勧めします。</p>
 <h2 is-upgraded><strong>何をつくりますか？</strong></h2>
 <p>このコードラボでは、以下の特徴を持つ Interactive Canvas を使ったスマートディスプレイ向けアクションを構築します。</p>
 <ul>
@@ -125,16 +125,18 @@
 <li><strong>Create Project</strong> をクリックします。</li>
 <li>画面の下にある <strong>Conversational</strong> をクリックします。</li>
 </ol>
+<aside class="warning"><p>もし <strong>Create Project</strong> をクリックした際に「Something went wrong when creating your project. Please try again later.」というエラーメッセージが表示された場合は、再度クリックしてください。</p>
+</aside>
 <p>Actionsプロジェクト作成後、Interactive Canvas機能を有効にします。そのために、以下の手順を行います。</p>
 <ol type="1" start="1">
-<li>左のナビゲーションから、<strong>Deploy &gt; Directory information</strong> をクリックします。</li>
+<li>上のナビゲーションから <strong>Deploy</strong> をクリックし、左のメニューから<strong> Directory information</strong> をクリックします。</li>
 <li><strong>Additional Information &gt; Category</strong> にて &#34;Games &amp; fun&#34; を選択します。<br><img style="width: 447.50px" src="img/3b6708c135dd475e.png"></li>
 <li><strong>Interactive Canvas</strong> の &#34;Yes&#34; にチェックを入れる。<br><img style="width: 275.50px" src="img/3755f09d4d98f178.png"></li>
 <li>画面上部にある <strong>Save</strong> ボタンを押す。</li>
 </ol>
 <p>次に、Dialogflowエージェントを以下の手順で作成します。</p>
 <ol type="1" start="1">
-<li>左のナビゲーションから、<strong>Build &gt; Actions</strong> をクリックします。</li>
+<li>上のナビゲーションから <strong>Develop</strong> をクリックし、その後左のメニューから <strong>Actions</strong> をクリックします。</li>
 <li><strong>Add your first Action</strong> をクリックします。</li>
 <li>Create Action ダイアログ上で、<strong>Custom Intent</strong> を選択して、Dialogflow consoleを起動するために <strong>Build</strong> をクリックします。</li>
 <li>Dialogflow consoleの <strong>Create Agent </strong>ページにて、<strong>DEFAULT LANGUAGE</strong> として &#34;Japanese - ja&#34; を選択した後に、<strong>Create</strong> をクリックします。</li>
@@ -189,7 +191,7 @@ $ firebase init</code></pre>
 <h2 is-upgraded><strong>依存ライブラリの追加とフルフィルメントの初期ファイルの作成</strong></h2>
 <p>生成された Function のコードセットに対して、Actions on Google Client Library を依存ライブラリとして追加します。以下のコマンドを実行します。</p>
 <pre><code>$ cd functions
-$ npm install actions-on-google@preview --save
+$ npm install actions-on-google --save
 $ cd ..</code></pre>
 <p>次に、functionsディレクトリにある index.js ファイルの内容を以下で置き換えます。</p>
 <pre><code>const functions = require(&#39;firebase-functions&#39;);
@@ -380,20 +382,20 @@ div.container {
   &lt;body&gt;
     &lt;div class=&#34;container&#34;&gt;
       &lt;div id=&#34;welcome&#34;&gt;
-        &lt;img src=&#34;images/rock.png&#34; /&gt;
-        &lt;img src=&#34;images/scissors.png&#34; /&gt;
-        &lt;img src=&#34;images/paper.png&#34; /&gt;
+        &lt;img src=&#34;images/rock.png&#34;&gt;
+        &lt;img src=&#34;images/scissors.png&#34;&gt;
+        &lt;img src=&#34;images/paper.png&#34;&gt;
       &lt;/div&gt;
       &lt;div id=&#34;vs&#34;&gt;
-        &lt;img src=&#34;images/vs.png&#34; /&gt;
+        &lt;img src=&#34;images/vs.png&#34;&gt;
       &lt;/div&gt;
       &lt;div id=&#34;result&#34;&gt;
         &lt;div class=&#34;result-row&#34;&gt;
           &lt;div&gt;
-            &lt;img id=&#34;user-choice&#34; src=&#34;&#34; /&gt;
+            &lt;img id=&#34;user-choice&#34; src=&#34;&#34;&gt;
           &lt;/div&gt;
           &lt;div&gt;
-            &lt;img id=&#34;action-choice&#34; src=&#34;&#34; /&gt;
+            &lt;img id=&#34;action-choice&#34; src=&#34;&#34;&gt;
           &lt;/div&gt;
         &lt;/div&gt;
         &lt;div id=&#34;message&#34;&gt;
@@ -473,15 +475,15 @@ $ cd ../..</code></pre>
 <p>ここでは、グー、チョキ、そしてパーの3つの画像それぞれにイベントハンドラを登録します。そして、もしいずれかがタップされた際に、タップされた手を示すフレーズをGoogleアシスタントに送信する処理を追加します。</p>
 <p>public/index.html ファイルの中に、以下のような &#34;welcome&#34; というID値を持つ div 要素があります。</p>
 <pre><code>      &lt;div id=&#34;welcome&#34;&gt;
-        &lt;img src=&#34;images/rock.png&#34; /&gt;
-        &lt;img src=&#34;images/scissors.png&#34; /&gt;
-        &lt;img src=&#34;images/paper.png&#34; /&gt;
+        &lt;img src=&#34;images/rock.png&#34;&gt;
+        &lt;img src=&#34;images/scissors.png&#34;&gt;
+        &lt;img src=&#34;images/paper.png&#34;&gt;
       &lt;/div&gt;</code></pre>
 <p>その div 要素の子要素として、3つの img 要素があります。img 要素それぞれに対して、じゃんけんの手を示す文字列を data-choice 属性として追加します。</p>
 <pre><code>      &lt;div id=&#34;welcome&#34;&gt;
-        &lt;img src=&#34;images/rock.png&#34; data-choice=&#34;グー&#34; /&gt;
-        &lt;img src=&#34;images/scissors.png&#34; data-choice=&#34;チョキ&#34; /&gt;
-        &lt;img src=&#34;images/paper.png&#34; data-choice=&#34;パー&#34; /&gt;
+        &lt;img src=&#34;images/rock.png&#34; data-choice=&#34;グー&#34;&gt;
+        &lt;img src=&#34;images/scissors.png&#34; data-choice=&#34;チョキ&#34;&gt;
+        &lt;img src=&#34;images/paper.png&#34; data-choice=&#34;パー&#34;&gt;
       &lt;/div&gt;</code></pre>
 <p>次に、public/js/index.js ファイルにて、上記の各 img 要素に対してイベントハンドラを登録します。public/js/index.js ファイルの中に、以下のような記載を見つけます。</p>
 <pre><code>// TODO: Write your code here.</code></pre>

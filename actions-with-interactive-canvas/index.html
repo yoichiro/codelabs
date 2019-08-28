@@ -125,16 +125,18 @@
 <li>Click <strong>Create Project</strong>.</li>
 <li>Click <strong>Conversational</strong> on the bottom of the page.</li>
 </ol>
+<aside class="warning"><p>When clicking <strong>Create Project</strong>,  if you see the error message like &#34;Something went wrong when creating your project. Please try again later.&#34;, you need to click it again.</p>
+</aside>
 <p>After creating Actions project, turn on Interactive Canvas feature. To do this, do the following steps:</p>
 <ol type="1" start="1">
-<li>Click <strong>Deploy &gt; Directory information</strong> on the left navigation.</li>
+<li>Click <strong>Deploy</strong> on the top navigation, then click <strong>Directory information</strong> on the left menu.</li>
 <li>Select &#34;Games &amp; fun&#34; on the <strong>Additional Information &gt; Category</strong>.<br><img style="width: 447.50px" src="img/3b6708c135dd475e.png"></li>
 <li>Check the &#34;Yes&#34; of <strong>Interactive Canvas</strong>.<br><img style="width: 275.50px" src="img/3755f09d4d98f178.png"></li>
 <li>Click the SAVE button on the top of the page.</li>
 </ol>
 <p>Next, create a Dialogflow agent by the following steps:</p>
 <ol type="1" start="1">
-<li>Click the <strong>Build &gt; Actions</strong> on the left navigation.</li>
+<li>Click the <strong>Develop</strong> on the top navigation, then click the <strong>Actions</strong> on the left menu.</li>
 <li>Click the <strong>Add your first Action</strong>.</li>
 <li>On the Create Action dialog, select <strong>Custom Intent</strong> and click the <strong>Build</strong> to launch the Dialogflow console.</li>
 <li>In the <strong>Create Agent</strong> on the Dialogflow console, click <strong>Create</strong>.</li>
@@ -189,7 +191,7 @@ $ firebase init</code></pre>
 <h2 is-upgraded><strong>Add Dependencies and Create Initial Files for Fulfillment</strong></h2>
 <p>We add Actions on Google Client Library as dependencies to generated function code set. Execute the following commands.</p>
 <pre><code>$ cd functions
-$ npm install actions-on-google@preview --save
+$ npm install actions-on-google --save
 $ cd ..</code></pre>
 <p>Next, replace the content of index.js file in the functions directory with the following content.</p>
 <pre><code>const functions = require(&#39;firebase-functions&#39;);
@@ -380,20 +382,20 @@ div.container {
   &lt;body&gt;
     &lt;div class=&#34;container&#34;&gt;
       &lt;div id=&#34;welcome&#34;&gt;
-        &lt;img src=&#34;images/rock.png&#34; /&gt;
-        &lt;img src=&#34;images/scissors.png&#34; /&gt;
-        &lt;img src=&#34;images/paper.png&#34; /&gt;
+        &lt;img src=&#34;images/rock.png&#34;&gt;
+        &lt;img src=&#34;images/scissors.png&#34;&gt;
+        &lt;img src=&#34;images/paper.png&#34;&gt;
       &lt;/div&gt;
       &lt;div id=&#34;vs&#34;&gt;
-        &lt;img src=&#34;images/vs.png&#34; /&gt;
+        &lt;img src=&#34;images/vs.png&#34;&gt;
       &lt;/div&gt;
       &lt;div id=&#34;result&#34;&gt;
         &lt;div class=&#34;result-row&#34;&gt;
           &lt;div&gt;
-            &lt;img id=&#34;user-choice&#34; src=&#34;&#34; /&gt;
+            &lt;img id=&#34;user-choice&#34; src=&#34;&#34;&gt;
           &lt;/div&gt;
           &lt;div&gt;
-            &lt;img id=&#34;action-choice&#34; src=&#34;&#34; /&gt;
+            &lt;img id=&#34;action-choice&#34; src=&#34;&#34;&gt;
           &lt;/div&gt;
         &lt;/div&gt;
         &lt;div id=&#34;message&#34;&gt;
@@ -473,15 +475,15 @@ $ cd ../..</code></pre>
 <p>Here, we add event handlers to each element of three images (rock, paper and scissors). And, add a process to send a phrase represents the hand which the user tapped to Google Assistant, for when one of the elements is tapped.</p>
 <p>There is the div element which has the &#34;welcome&#34; value as ID in the public/index.html file.</p>
 <pre><code>      &lt;div id=&#34;welcome&#34;&gt;
-        &lt;img src=&#34;images/rock.png&#34; /&gt;
-        &lt;img src=&#34;images/scissors.png&#34; /&gt;
-        &lt;img src=&#34;images/paper.png&#34; /&gt;
+        &lt;img src=&#34;images/rock.png&#34;&gt;
+        &lt;img src=&#34;images/scissors.png&#34;&gt;
+        &lt;img src=&#34;images/paper.png&#34;&gt;
       &lt;/div&gt;</code></pre>
 <p>There are three img elements as each child element of the div element. We add a data-choice attribute for each img element. Each element has each one of rock, paper or scissors.</p>
 <pre><code>      &lt;div id=&#34;welcome&#34;&gt;
-        &lt;img src=&#34;images/rock.png&#34; data-choice=&#34;rock&#34; /&gt;
-        &lt;img src=&#34;images/scissors.png&#34; data-choice=&#34;scissors&#34; /&gt;
-        &lt;img src=&#34;images/paper.png&#34; data-choice=&#34;paper&#34; /&gt;
+        &lt;img src=&#34;images/rock.png&#34; data-choice=&#34;rock&#34;&gt;
+        &lt;img src=&#34;images/scissors.png&#34; data-choice=&#34;scissors&#34;&gt;
+        &lt;img src=&#34;images/paper.png&#34; data-choice=&#34;paper&#34;&gt;
       &lt;/div&gt;</code></pre>
 <p>Next, register an event handler to each img element in public/js/index.js file. You see the following line in public/js/index.js file.</p>
 <pre><code>// TODO: Write your code here.</code></pre>
