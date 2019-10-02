@@ -402,7 +402,7 @@ div.container {
         &lt;/div&gt;
       &lt;/div&gt;
     &lt;/div&gt;
-    &lt;script src=&#34;js/index.js&#34;&gt;&lt;/script&gt;
+    &lt;script src=&#34;js/main.js&#34;&gt;&lt;/script&gt;
   &lt;/body&gt;
 &lt;/html&gt;</code></pre>
 <p>A Web page for Interactive Canvas needs to fulfill the following.</p>
@@ -419,7 +419,7 @@ div.container {
 <p>According to the progress of the conversation, one of the three elements above is displayed.</p>
 <h3 is-upgraded>Create JavaScript file</h3>
 <p>A Web page interacts with a Fulfillment on running Interactive Canvas. The JavaScript code changes the content of the Web page dynamically.</p>
-<p>Here, we create an empty JavaScript file. Create the index.js file in the public/js directory with an empty content.</p>
+<p>Here, we create an empty JavaScript file. Create the main.js file in the public/js directory with an empty content.</p>
 <pre><code>&#39;use strict&#39;;
 
 // TODO: Write your code here.</code></pre>
@@ -485,7 +485,7 @@ $ cd ../..</code></pre>
         &lt;img src=&#34;images/scissors.png&#34; data-choice=&#34;scissors&#34;&gt;
         &lt;img src=&#34;images/paper.png&#34; data-choice=&#34;paper&#34;&gt;
       &lt;/div&gt;</code></pre>
-<p>Next, register an event handler to each img element in public/js/index.js file. You see the following line in public/js/index.js file.</p>
+<p>Next, register an event handler to each img element in public/js/main.js file. You see the following line in public/js/main.js file.</p>
 <pre><code>// TODO: Write your code here.</code></pre>
 <p>We add the code below under the line above.</p>
 <pre><code>document.querySelectorAll(&#39;#welcome img&#39;).forEach(img =&gt; {
@@ -653,7 +653,7 @@ $ cd ../..</code></pre>
 <p>Your code can specify saying a phrase and updating a screen to Google Assistant by passing SSML string and HtmlResponse object to conv.ask() method.</p>
 <h2 is-upgraded><strong>Handle screen update request</strong></h2>
 <p>After Google Assistant receives the HtmlResponse object sent from your fulfillment, your JavaScript code is executed to update the screen on Smart Display. For instance, you need to register your callback function called at the timing when it is necessary to update the screen (that is, the timing is the HtmlResponse object is returned from your fulfillment).</p>
-<p>You can find the line like below in public/js/index.js file.</p>
+<p>You can find the line like below in public/js/main.js file.</p>
 <pre><code>// TODO: Write your code here.</code></pre>
 <p>Add the following code under the line above.</p>
 <pre><code>interactiveCanvas.ready({
@@ -691,7 +691,7 @@ $ cd ../..</code></pre>
 <p>To implement this behavior, we use the setTimeout() function of JavaScript.</p>
 <aside class="warning"><p>In the specification, the onTtsMark() should be called based on each &lt;mark&gt; tag in SSML string. Therefore, we should turn on/off the visibility of the div element with the behavior. However, because there is a bug currently about the feature, we use the way using setTimeout() function in this codelab.</p>
 </aside>
-<p>You can find the following line in public/js/index.js file.</p>
+<p>You can find the following line in public/js/main.js file.</p>
 <pre><code>// Display the result.</code></pre>
 <p>Add the code below under the line above.</p>
 <pre><code>setTimeout(() =&gt; {
@@ -780,7 +780,7 @@ $ cd ../..</code></pre>
   }));
 });</code></pre>
 <p>By specifying the &#34;restart&#34; value to the scene property, your code specifies to go back to the initial data as the update behavior for the screen.</p>
-<p>Add the code in the public/js/index.js file to change the screen to initial data based on the content of this HtmlResponse object. You can find the following line in the public/js/index.js file.</p>
+<p>Add the code in the public/js/main.js file to change the screen to initial data based on the content of this HtmlResponse object. You can find the following line in the public/js/main.js file.</p>
 <pre><code>// Initialize the screen.</code></pre>
 <p>Add the following code under the line above.</p>
 <pre><code>if (data.scene === &#39;restart&#39;) {
