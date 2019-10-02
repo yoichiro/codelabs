@@ -402,7 +402,7 @@ div.container {
         &lt;/div&gt;
       &lt;/div&gt;
     &lt;/div&gt;
-    &lt;script src=&#34;js/index.js&#34;&gt;&lt;/script&gt;
+    &lt;script src=&#34;js/main.js&#34;&gt;&lt;/script&gt;
   &lt;/body&gt;
 &lt;/html&gt;</code></pre>
 <p>Interactive Canvas向けのウェブページは、以下を満たす必要があります。</p>
@@ -419,7 +419,7 @@ div.container {
 <p>会話の進行状況に応じて、上記の3つの要素のいずれかが表示されます。</p>
 <h3 is-upgraded>JavaScriptファイルの作成</h3>
 <p>Interactive Canvasでは、ウェブページとフルフィルメントが相互に関連しながら動作が進みます。ウェブページを動的に変更する処理は、JavaScriptファイルに記載されたコードが担当します。</p>
-<p>ここで、中身のないJavaScriptファイルを作成します。public/js ディレクトリに index.js ファイルを以下の内容で作成してください。</p>
+<p>ここで、中身のないJavaScriptファイルを作成します。public/js ディレクトリに main.js ファイルを以下の内容で作成してください。</p>
 <pre><code>&#39;use strict&#39;;
 
 // TODO: Write your code here.</code></pre>
@@ -485,7 +485,7 @@ $ cd ../..</code></pre>
         &lt;img src=&#34;images/scissors.png&#34; data-choice=&#34;チョキ&#34;&gt;
         &lt;img src=&#34;images/paper.png&#34; data-choice=&#34;パー&#34;&gt;
       &lt;/div&gt;</code></pre>
-<p>次に、public/js/index.js ファイルにて、上記の各 img 要素に対してイベントハンドラを登録します。public/js/index.js ファイルの中に、以下のような記載を見つけます。</p>
+<p>次に、public/js/main.js ファイルにて、上記の各 img 要素に対してイベントハンドラを登録します。public/js/main.js ファイルの中に、以下のような記載を見つけます。</p>
 <pre><code>// TODO: Write your code here.</code></pre>
 <p>この下に、以下のコードを追加します。</p>
 <pre><code>document.querySelectorAll(&#39;#welcome img&#39;).forEach(img =&gt; {
@@ -659,7 +659,7 @@ const judgeMap = {
 <p>SSML文字列およびHtmlResponseオブジェクトを conv.ask() メソッドに渡すことで、Googleアシスタントに発話と画面更新を指示することができます。</p>
 <h2 is-upgraded><strong>画面更新要求をハンドリングする</strong></h2>
 <p>フルフィルメントから送信されたHtmlResponseオブジェクトをGoogleアシスタントが受け取った後に、スマートディスプレイ上では画面を更新するためにJavaScriptコードが実行されます。具体的には、画面を更新する必要が生じたとき（つまり HtmlResponse オブジェクトがフルフィルメントから返されたとき）に呼び出されるコールバック関数を登録します。</p>
-<p>public/js/index.js ファイルの中に、以下のような記載を見つけます。</p>
+<p>public/js/main.js ファイルの中に、以下のような記載を見つけます。</p>
 <pre><code>// TODO: Write your code here.</code></pre>
 <p>この下に、以下のコードを追加します。</p>
 <pre><code>interactiveCanvas.ready({
@@ -697,7 +697,7 @@ const judgeMap = {
 <p>この動作を実現するために、JavaScript の setTimeout() 関数を利用します。</p>
 <aside class="warning"><p>本来であれば、SSMLの文字列に &lt;mark&gt; タグを記載しておくことで onTtsMark()  コールバック関数が呼び出されるので、その中で div 要素の表示と非表示を切り替えるべきです。しかし、&lt;mark&gt; タグと onTtsMark() コールバック関数の動作に不具合があるため、このコードラボでは setTimeout() による実装方式を採用します。 </p>
 </aside>
-<p>public/js/index.js ファイルの中に、以下のような記載を見つけます。</p>
+<p>public/js/main.js ファイルの中に、以下のような記載を見つけます。</p>
 <pre><code>// Display the result.</code></pre>
 <p>この下に、以下のコードを追加します。</p>
 <pre><code>setTimeout(() =&gt; {
@@ -786,7 +786,7 @@ const judgeMap = {
   }));
 });</code></pre>
 <p>scene プロパティに &#34;restart&#34; を指定することで、画面の更新動作として初期状態に戻すことを指示します。</p>
-<p>この HtmlResponse オブジェクトの内容に基づいて、画面を初期状態に戻す処理を public/js/index.js ファイルに追記します。public/js/index.js ファイルの中に、以下のような記載を見つけます。</p>
+<p>この HtmlResponse オブジェクトの内容に基づいて、画面を初期状態に戻す処理を public/js/main.js ファイルに追記します。public/js/main.js ファイルの中に、以下のような記載を見つけます。</p>
 <pre><code>// Initialize the screen.</code></pre>
 <p>この下に、以下のコードを追加します。</p>
 <pre><code>if (data.scene === &#39;restart&#39;) {
