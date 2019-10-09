@@ -1,15 +1,15 @@
 {
   "environment": "web",
-  "source": "1KizKKyMLfg0Rsm0wzykQvDza2zj9XSaiTt_ecg86kaY",
   "format": "html",
-  "prefix": "https://yoichiro.github.io/codelabs/actions-1-ja/",
+  "prefix": "https://storage.googleapis.com",
   "mainga": "UA-790299-27",
-  "updated": "2018-11-30T22:09:03Z",
+  "updated": "2019-10-09T05:20:30Z",
   "id": "actions-1-ja",
   "duration": 50,
   "title": "Build Actions for the Google Assistant (Level 1)",
-  "author": "yoichiro",
+  "authors": "yoichiro",
   "summary": "このコードラボでは、Actions on Googleでの開発における初心者レベルの概念をカバーします。",
+  "source": "1KizKKyMLfg0Rsm0wzykQvDza2zj9XSaiTt_ecg86kaY",
   "theme": "assistant",
   "status": [
     "live"
